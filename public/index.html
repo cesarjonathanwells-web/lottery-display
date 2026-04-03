@@ -176,6 +176,23 @@
   .ball   { width: 38px; height: 38px; font-size: 17px; }
   .ball-d { width: 30px; height: 30px; font-size: 18px; }
 
+  /* ══ STATUS BADGES ══ */
+  .status-pending {
+    background: linear-gradient(90deg, #ff8f00, #ffa726);
+    color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 4px 14px; border-radius: 20px;
+    animation: pulse-pending 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-pending {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+  .status-noresult {
+    background: #bdbdbd; color: #fff; font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 20px;
+  }
+
   /* ══ TICKER ══ */
   .ticker {
     flex-shrink: 0;
@@ -288,13 +305,25 @@
     }
   }
 
+  function renderStatus(draw) {
+    if (draw.status === 'pending') {
+      return '<span class="status-pending">Pending</span>';
+    }
+    if (draw.status === 'no_result') {
+      return '<span class="status-noresult">No Result</span>';
+    }
+    return null;
+  }
+
   function renderCard(lottery) {
-    const rows = lottery.draws.map(draw =>
-      `<div class="row">
+    const rows = lottery.draws.map(draw => {
+      const statusHtml = renderStatus(draw);
+      const ballsHtml = statusHtml || renderBalls(lottery, draw);
+      return `<div class="row">
         <span class="time">${draw.time}</span>
-        <span class="balls">${renderBalls(lottery, draw)}</span>
-      </div>`
-    ).join('');
+        <span class="balls">${ballsHtml}</span>
+      </div>`;
+    }).join('');
 
     return `<div class="card">
       <div class="card-head" style="background:linear-gradient(90deg,${lottery.color},${lighten(lottery.color)})">
@@ -328,8 +357,14 @@
     for (const col of data.columns) {
       for (const lottery of col.lotteries) {
         for (const draw of lottery.draws) {
-          const nums = draw.numbers.join(draw.numbers.includes('-') ? '' : '-');
-          items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>${nums}</b></span>`);
+          if (draw.status === 'pending') {
+            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>PENDING</b></span>`);
+          } else if (draw.status === 'no_result') {
+            continue;
+          } else {
+            const nums = draw.numbers.join(draw.numbers.includes('-') ? '' : '-');
+            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>${nums}</b></span>`);
+          }
         }
       }
     }

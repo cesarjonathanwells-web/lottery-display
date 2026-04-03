@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const scraper = require('./scrapers');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -121,6 +122,23 @@ app.post('/api/results/clear-all', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// --- Scraper API (protected) ---
+
+app.get('/api/scraper-status', authMiddleware, (req, res) => {
+  res.json(scraper.getStatus());
+});
+
+app.post('/api/scraper/run/:lotteryId', authMiddleware, async (req, res) => {
+  const { lotteryId } = req.params;
+  try {
+    const result = await scraper.manualScrape(lotteryId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Lottery server running on port ${PORT}`);
+  scraper.init();
 });
