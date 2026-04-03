@@ -274,7 +274,22 @@ async function manualScrape(lotteryId) {
 }
 
 /**
+ * Parse a draw time like "2:30 PM" or "10:00 AM" into { hours, minutes } in 24h format.
+ */
+function parseDrawTime(timeStr) {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3].toUpperCase();
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  return { hours, minutes };
+}
+
+/**
  * Initialize the scheduler. Sets up cron jobs for each lottery draw.
+ * Polling starts AT the draw time (not before).
  */
 function init() {
   const config = readConfig();
@@ -283,16 +298,19 @@ function init() {
   for (const scraperConfig of config.scrapers) {
     for (let di = 0; di < scraperConfig.draws.length; di++) {
       const drawConfig = scraperConfig.draws[di];
-      const [hours, minutes] = drawConfig.startPolling.split(':').map(Number);
+      const parsed = parseDrawTime(drawConfig.time);
+      if (!parsed) {
+        log(`  Skipping ${scraperConfig.lotteryId} "${drawConfig.time}" — could not parse time`);
+        continue;
+      }
 
-      // Create cron expression: "minutes hours * * *" (every day)
-      const cronExpr = `${minutes} ${hours} * * *`;
+      const cronExpr = `${parsed.minutes} ${parsed.hours} * * *`;
 
       cron.schedule(cronExpr, () => {
         startPolling(scraperConfig, drawConfig, di);
       }, { timezone: config.timezone || 'America/New_York' });
 
-      log(`  Scheduled ${scraperConfig.lotteryId} "${drawConfig.time}" → poll at ${drawConfig.startPolling}`);
+      log(`  Scheduled ${scraperConfig.lotteryId} "${drawConfig.time}" → poll at ${String(parsed.hours).padStart(2,'0')}:${String(parsed.minutes).padStart(2,'0')}`);
     }
   }
 
