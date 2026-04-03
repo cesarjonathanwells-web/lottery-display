@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lottery Results Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ══ DESIGN TOKENS ══ */
+  :root {
+    --bg-deep:     #e8edf5;
+    --bg-panel:    #ffffff;
+    --border:      #c8d4e8;
+    --mid:         #4a5f7a;
+    --dark:        #1a2a40;
+
+    --header-h:    62px;
+    --ticker-h:    40px;
+    --main-pad:    10px;
+    --card-head-h: 46px;
+    --card-gap:    10px;
+
+    /* Uniform row height — fills Anguilla (15 rows) exactly in remaining viewport */
+    --row-h: calc(
+      (100vh - var(--header-h) - var(--ticker-h) - var(--main-pad) * 2 - var(--card-head-h))
+      / 15
+    );
+  }
+
+  /* ══ RESET ══ */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ══ LAYOUT ROOT ══ */
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--dark);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ══ HEADER ══ */
+  header {
+    flex-shrink: 0;
+    height: var(--header-h);
+    background: linear-gradient(180deg, #1a3560, #1e3d6e);
+    border-bottom: 2px solid #2c5090;
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1565c0, #5bc8ff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #fff;
+  }
+  .logo-text {
+    font-size: 18px; font-weight: 900; letter-spacing: 1px;
+    color: #fff; text-transform: uppercase; line-height: 1;
+  }
+  .logo-sub {
+    font-size: 10px; letter-spacing: 3px;
+    color: rgba(255,255,255,.45); text-transform: uppercase; margin-top: 2px;
+  }
+
+  .hdr-center { text-align: center; }
+  .hdr-warn {
+    font-size: 20px; font-weight: 700; letter-spacing: 1px;
+    color: #ffcc80; text-transform: uppercase;
+    animation: blink 2.2s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+  .clock-wrap { text-align: right; }
+  .hdr-date {
+    font-size: 11px; letter-spacing: 2px;
+    color: rgba(255,255,255,.55); text-transform: uppercase; margin-bottom: 2px;
+  }
+  .clock { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 2px; line-height: 1; }
+
+  /* ══ MAIN GRID ══ */
+  main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--card-gap);
+    padding: var(--main-pad);
+    overflow: hidden;
+    align-items: start;
+  }
+
+  /* ══ COLUMN ══ */
+  .col-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-gap);
+  }
+
+  /* ══ CARD ══ */
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    animation: rise .45s ease both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ══ CARD HEADER ══ */
+  .card-head {
+    flex-shrink: 0;
+    height: var(--card-head-h);
+    padding: 0 14px;
+    display: flex; align-items: center;
+  }
+  .card-title {
+    font-size: 20px; font-weight: 700; letter-spacing: .5px;
+    color: #fff; text-transform: uppercase;
+  }
+
+  /* ══ ROW — board-wide uniform height ══ */
+  .row {
+    height: var(--row-h);
+    flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover      { background: #eef3fc; }
+
+  /* ══ TIME LABEL ══ */
+  .time {
+    width: 90px; flex-shrink: 0;
+    font-size: 18px; font-weight: 600;
+    color: var(--mid); letter-spacing: .5px; line-height: 1;
+  }
+
+  /* ══ BALLS ══ */
+  .balls {
+    flex: 1;
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 3px;
+  }
+
+  .ball-group {
+    display: flex; align-items: center;
+    gap: 3px;
+  }
+
+  .ball-sep {
+    font-size: 20px; font-weight: 900;
+    color: var(--mid); line-height: 1;
+    flex-shrink: 0; margin: 0 1px;
+  }
+
+  /* Shared ball base */
+  .ball, .ball-d {
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #fff; flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 2px 5px rgba(0,0,0,.18);
+  }
+
+  .ball   { width: 38px; height: 38px; font-size: 17px; } /* Pick 3 — 2-digit */
+  .ball-d { width: 30px; height: 30px; font-size: 18px; } /* Pick 4/7 — 1-digit */
+
+  /* ══ TICKER ══ */
+  .ticker {
+    flex-shrink: 0;
+    height: var(--ticker-h);
+    background: #1a3560;
+    border-top: 2px solid #2c5090;
+    display: flex; align-items: center; overflow: hidden;
+    z-index: 100;
+  }
+  .ticker-tag {
+    flex-shrink: 0;
+    height: 100%; padding: 0 16px;
+    background: #fff; color: #1a3560;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center;
+  }
+  .ticker-track { display: flex; animation: scroll 55s linear infinite; white-space: nowrap; }
+  .ticker-item  { font-size: 14px; letter-spacing: 1.5px; color: rgba(255,255,255,.65); padding: 0 32px; }
+  .ticker-item b { font-size: 14px; color: #fff; font-weight: 700; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ══ MOBILE FALLBACK ══ */
+  @media (max-width: 900px) {
+    html, body { overflow: auto; height: auto; }
+    main { grid-template-columns: repeat(2, 1fr); height: auto; overflow: visible; }
+    .row { height: 52px; }
+  }
+  @media (max-width: 540px) {
+    main      { grid-template-columns: 1fr; }
+    header    { height: auto; padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
+    .hdr-warn { font-size: 15px; }
+    .clock    { font-size: 20px; }
+    .row      { height: 48px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">L</div>
+    <div>
+      <div class="logo-text">Lucky Draw</div>
+      <div class="logo-sub">Results Board</div>
+    </div>
+  </div>
+  <div class="hdr-center">
+    <div class="hdr-warn">⚠ &nbsp; Check your ticket before you leave &nbsp; ⚠</div>
+  </div>
+  <div class="clock-wrap">
+    <div class="hdr-date" id="dateStr"></div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ COLUMN 1 · ANGUILLA ══ -->
+  <div class="col-wrap">
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#1565c0,#1976d2)"><span class="card-title">Anguilla</span></div>
+      <div class="row"><span class="time">8:00 AM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">96</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">84</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">11</span></span></span></div>
+      <div class="row"><span class="time">9:00 AM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">11</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">74</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">03</span></span></span></div>
+      <div class="row"><span class="time">10:00 AM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">86</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">62</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">47</span></span></span></div>
+      <div class="row"><span class="time">11:00 AM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">94</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">22</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">82</span></span></span></div>
+      <div class="row"><span class="time">12:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">66</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">87</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">23</span></span></span></div>
+      <div class="row"><span class="time">1:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">60</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">46</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">62</span></span></span></div>
+      <div class="row"><span class="time">2:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">20</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">52</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">19</span></span></span></div>
+      <div class="row"><span class="time">3:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">15</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">97</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">64</span></span></span></div>
+      <div class="row"><span class="time">4:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">87</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">42</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">02</span></span></span></div>
+      <div class="row"><span class="time">5:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">75</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">94</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">88</span></span></span></div>
+      <div class="row"><span class="time">6:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">27</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">73</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">97</span></span></span></div>
+      <div class="row"><span class="time">7:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">28</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">63</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">84</span></span></span></div>
+      <div class="row"><span class="time">8:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">03</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">42</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">97</span></span></span></div>
+      <div class="row"><span class="time">9:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">59</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">91</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">89</span></span></span></div>
+      <div class="row"><span class="time">10:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">39</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">67</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">47</span></span></span></div>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 2 · OCEAN + LOTEDOM + LA PRIMERA + LA SUERTE ══ -->
+  <div class="col-wrap">
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#00838f,#0097a7)"><span class="card-title">Ocean</span></div>
+      <div class="row"><span class="time">10:00 AM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#00838f">59</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">30</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">17</span></span></span></div>
+      <div class="row"><span class="time">1:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#00838f">01</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">84</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">50</span></span></span></div>
+      <div class="row"><span class="time">3:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#00838f">76</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">32</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">94</span></span></span></div>
+      <div class="row"><span class="time">6:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#00838f">19</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">66</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">52</span></span></span></div>
+      <div class="row"><span class="time">9:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#00838f">37</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">58</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#00838f">73</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#7b1fa2,#9c27b0)"><span class="card-title">Lotedom</span></div>
+      <div class="row"><span class="time">12:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#7b1fa2">98</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#7b1fa2">36</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#7b1fa2">58</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#c62828,#e53935)"><span class="card-title">La Primera</span></div>
+      <div class="row"><span class="time">12:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#c62828">98</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#c62828">71</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#c62828">80</span></span></span></div>
+      <div class="row"><span class="time">7:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#c62828">10</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#c62828">50</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#c62828">74</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#1565c0,#1976d2)"><span class="card-title">La Suerte</span></div>
+      <div class="row"><span class="time">12:30 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">64</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">34</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">49</span></span></span></div>
+      <div class="row"><span class="time">6:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1565c0">66</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">53</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1565c0">41</span></span></span></div>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 3 · KING LOTTERY + REAL + GEORGIA + NEW JERSEY + FLORIDA ══ -->
+  <div class="col-wrap">
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#283593,#3949ab)"><span class="card-title">King Lottery</span></div>
+      <div class="row"><span class="time">12:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#283593">3</span><span class="ball-d" style="background:#283593">2</span><span class="ball-d" style="background:#283593">3</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#283593">6</span><span class="ball-d" style="background:#283593">8</span><span class="ball-d" style="background:#283593">0</span><span class="ball-d" style="background:#283593">1</span></span></span></div>
+      <div class="row"><span class="time">7:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#283593">3</span><span class="ball-d" style="background:#283593">3</span><span class="ball-d" style="background:#283593">6</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#283593">3</span><span class="ball-d" style="background:#283593">4</span><span class="ball-d" style="background:#283593">7</span><span class="ball-d" style="background:#283593">0</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#4a148c,#6a1b9a)"><span class="card-title">Real</span></div>
+      <div class="row"><span class="time">1:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#4a148c">92</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#4a148c">60</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#4a148c">79</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#bf360c,#d84315)"><span class="card-title">Georgia</span></div>
+      <div class="row"><span class="time">12:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#bf360c">2</span><span class="ball-d" style="background:#bf360c">9</span><span class="ball-d" style="background:#bf360c">7</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#bf360c">8</span><span class="ball-d" style="background:#bf360c">9</span><span class="ball-d" style="background:#bf360c">0</span><span class="ball-d" style="background:#bf360c">4</span></span></span></div>
+      <div class="row"><span class="time">7:00 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#bf360c">5</span><span class="ball-d" style="background:#bf360c">6</span><span class="ball-d" style="background:#bf360c">4</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#bf360c">1</span><span class="ball-d" style="background:#bf360c">4</span><span class="ball-d" style="background:#bf360c">4</span><span class="ball-d" style="background:#bf360c">5</span></span></span></div>
+      <div class="row"><span class="time">11:40 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#bf360c">0</span><span class="ball-d" style="background:#bf360c">8</span><span class="ball-d" style="background:#bf360c">0</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#bf360c">8</span><span class="ball-d" style="background:#bf360c">3</span><span class="ball-d" style="background:#bf360c">2</span><span class="ball-d" style="background:#bf360c">1</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#00695c,#00796b)"><span class="card-title">New Jersey</span></div>
+      <div class="row"><span class="time">1:00 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#00695c">2</span><span class="ball-d" style="background:#00695c">6</span><span class="ball-d" style="background:#00695c">7</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#00695c">6</span><span class="ball-d" style="background:#00695c">2</span><span class="ball-d" style="background:#00695c">5</span><span class="ball-d" style="background:#00695c">6</span></span></span></div>
+      <div class="row"><span class="time">11:00 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#00695c">7</span><span class="ball-d" style="background:#00695c">4</span><span class="ball-d" style="background:#00695c">5</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#00695c">1</span><span class="ball-d" style="background:#00695c">4</span><span class="ball-d" style="background:#00695c">7</span><span class="ball-d" style="background:#00695c">9</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#ad1457,#c2185b)"><span class="card-title">Florida</span></div>
+      <div class="row"><span class="time">1:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#ad1457">7</span><span class="ball-d" style="background:#ad1457">2</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#ad1457">8</span><span class="ball-d" style="background:#ad1457">2</span><span class="ball-d" style="background:#ad1457">1</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#ad1457">8</span><span class="ball-d" style="background:#ad1457">7</span><span class="ball-d" style="background:#ad1457">3</span><span class="ball-d" style="background:#ad1457">7</span></span></span></div>
+      <div class="row"><span class="time">10:00 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#ad1457">5</span><span class="ball-d" style="background:#ad1457">8</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#ad1457">2</span><span class="ball-d" style="background:#ad1457">8</span><span class="ball-d" style="background:#ad1457">1</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#ad1457">0</span><span class="ball-d" style="background:#ad1457">7</span><span class="ball-d" style="background:#ad1457">4</span><span class="ball-d" style="background:#ad1457">4</span></span></span></div>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 4 · NACIONAL + CONNECTICUT + NEW YORK + LOTEKA + QUINIELA ══ -->
+  <div class="col-wrap">
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#2e7d32,#388e3c)"><span class="card-title">Nacional</span></div>
+      <div class="row"><span class="time">2:30 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#2e7d32">27</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#2e7d32">72</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#2e7d32">16</span></span></span></div>
+      <div class="row"><span class="time">9:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#2e7d32">59</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#2e7d32">55</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#2e7d32">71</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#37474f,#455a64)"><span class="card-title">Connecticut</span></div>
+      <div class="row"><span class="time">2:00 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#37474f">6</span><span class="ball-d" style="background:#37474f">5</span><span class="ball-d" style="background:#37474f">4</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#37474f">6</span><span class="ball-d" style="background:#37474f">2</span><span class="ball-d" style="background:#37474f">5</span><span class="ball-d" style="background:#37474f">1</span></span></span></div>
+      <div class="row"><span class="time">10:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#37474f">2</span><span class="ball-d" style="background:#37474f">4</span><span class="ball-d" style="background:#37474f">9</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#37474f">9</span><span class="ball-d" style="background:#37474f">2</span><span class="ball-d" style="background:#37474f">7</span><span class="ball-d" style="background:#37474f">6</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#6a1b9a,#7b1fa2)"><span class="card-title">New York</span></div>
+      <div class="row"><span class="time">2:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#6a1b9a">8</span><span class="ball-d" style="background:#6a1b9a">8</span><span class="ball-d" style="background:#6a1b9a">1</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#6a1b9a">7</span><span class="ball-d" style="background:#6a1b9a">6</span><span class="ball-d" style="background:#6a1b9a">3</span><span class="ball-d" style="background:#6a1b9a">3</span></span></span></div>
+      <div class="row"><span class="time">10:30 PM</span><span class="balls"><span class="ball-group"><span class="ball-d" style="background:#6a1b9a">8</span><span class="ball-d" style="background:#6a1b9a">2</span><span class="ball-d" style="background:#6a1b9a">4</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball-d" style="background:#6a1b9a">9</span><span class="ball-d" style="background:#6a1b9a">6</span><span class="ball-d" style="background:#6a1b9a">8</span><span class="ball-d" style="background:#6a1b9a">1</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#e65100,#f4511e)"><span class="card-title">Loteka</span></div>
+      <div class="row"><span class="time">8:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#e65100">03</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#e65100">77</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#e65100">12</span></span></span></div>
+      <div class="row"><span class="time">Toca 3</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#e65100">0</span></span><span class="ball-group"><span class="ball" style="background:#e65100">1</span></span><span class="ball-group"><span class="ball" style="background:#e65100">6</span></span></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="background:linear-gradient(90deg,#1b5e20,#2e7d32)"><span class="card-title">Quiniela Pale</span></div>
+      <div class="row"><span class="time">9:00 PM</span><span class="balls"><span class="ball-group"><span class="ball" style="background:#1b5e20">52</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1b5e20">06</span></span><span class="ball-sep">-</span><span class="ball-group"><span class="ball" style="background:#1b5e20">41</span></span></span></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══ TICKER — flex child of body ══ -->
+<div class="ticker">
+  <div class="ticker-tag">RESULTS</div>
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<script>
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function tick() {
+    const n = new Date();
+    document.getElementById('clock').textContent =
+      `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+    document.getElementById('dateStr').textContent =
+      `${DAYS[n.getDay()]}, ${MONTHS[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+  }
+  tick(); setInterval(tick, 1000);
+
+  const results = [
+    ['Anguilla 8:00 AM','96-84-11'],['Anguilla 9:00 AM','11-74-03'],
+    ['Ocean 10:00 AM','59-30-17'],['Anguilla 10:00 AM','86-62-47'],
+    ['Anguilla 11:00 AM','94-22-82'],['Ocean 1:00 PM','01-84-50'],
+    ['Lotedom 12:00 PM','98-36-58'],['La Primera 12:00 PM','98-71-80'],
+    ['King 12:30 PM','323-6801'],['Georgia 12:30 PM','297-8904'],
+    ['La Suerte 12:30 PM','64-34-49'],['Real 1:00 PM','92-60-79'],
+    ['New Jersey 1:00 PM','267-6256'],['Florida 1:30 PM','72-821-8737'],
+    ['Nacional 2:30 PM','27-72-16'],['Connecticut 2:00 PM','654-6251'],
+    ['New York 2:30 PM','881-7633'],['Ocean 3:00 PM','76-32-94'],
+    ['Anguilla 3:00 PM','15-97-64'],['Anguilla 4:00 PM','87-42-02'],
+    ['Anguilla 5:00 PM','75-94-88'],['Ocean 6:00 PM','19-66-52'],
+    ['La Suerte 6:00 PM','66-53-41'],['Anguilla 6:00 PM','27-73-97'],
+    ['Anguilla 7:00 PM','28-63-84'],['Georgia 7:00 PM','564-1445'],
+    ['La Primera 7:00 PM','10-50-74'],['King 7:30 PM','336-3470'],
+    ['Loteka 8:00 PM','03-77-12'],['Toca 3','0-1-6'],
+    ['Anguilla 8:00 PM','03-42-97'],['Nacional 9:00 PM','59-55-71'],
+    ['Ocean 9:00 PM','37-58-73'],['Anguilla 9:00 PM','59-91-89'],
+    ['Quiniela 9:00 PM','52-06-41'],['Anguilla 10:00 PM','39-67-47'],
+    ['Connecticut 10:30 PM','249-9276'],['New York 10:30 PM','824-9681'],
+    ['Florida 10:00 PM','58-281-0744'],['New Jersey 11:00 PM','745-1479'],
+    ['Georgia 11:40 PM','080-8321'],
+  ];
+
+  const html = results.map(([l,n]) =>
+    `<span class="ticker-item">${l} &nbsp; <b>${n}</b></span>`).join('');
+  const t = document.getElementById('ticker');
+  t.innerHTML = html + html;
+</script>
+</body>
+</html>
