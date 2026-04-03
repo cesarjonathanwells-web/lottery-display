@@ -392,12 +392,19 @@
     document.getElementById('ticker').innerHTML = html + html;
   }
 
-  // ── Fetch and refresh ──
+  // ── Fetch and refresh (only on change) ──
+
+  let lastDataHash = '';
 
   async function loadResults() {
     try {
       const res = await fetch('/api/results');
-      const data = await res.json();
+      const text = await res.text();
+
+      if (text === lastDataHash) return; // no change
+      lastDataHash = text;
+
+      const data = JSON.parse(text);
       renderBoard(data);
       renderTicker(data);
     } catch (e) {
