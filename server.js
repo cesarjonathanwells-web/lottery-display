@@ -66,6 +66,7 @@ app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
       if (lottery.id === lotteryId && lottery.draws[idx]) {
         if (numbers) lottery.draws[idx].numbers = numbers;
         if (time) lottery.draws[idx].time = time;
+        lottery.draws[idx].date = new Date().toISOString().slice(0, 10);
         writeData(data);
         return res.json({ ok: true });
       }
@@ -83,7 +84,7 @@ app.post('/api/results/:lotteryId/draws', authMiddleware, (req, res) => {
   for (const col of data.columns) {
     for (const lottery of col.lotteries) {
       if (lottery.id === lotteryId) {
-        lottery.draws.push({ time, numbers });
+        lottery.draws.push({ time, numbers, date: new Date().toISOString().slice(0, 10) });
         writeData(data);
         return res.json({ ok: true });
       }

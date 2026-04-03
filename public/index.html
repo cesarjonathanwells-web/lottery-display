@@ -269,6 +269,29 @@
   }
   tick(); setInterval(tick, 1000);
 
+  // ── Day-of-week ball colors ──
+  // Index 0 = Sunday, 1 = Monday, ... 6 = Saturday
+  const DAY_COLORS = [
+    '#c62828', // Sunday - Red
+    '#1565c0', // Monday - Blue
+    '#2e7d32', // Tuesday - Green
+    '#6a1b9a', // Wednesday - Purple
+    '#e65100', // Thursday - Orange
+    '#00838f', // Friday - Teal
+    '#283593'  // Saturday - Indigo
+  ];
+
+  function getBallColor(draw) {
+    if (draw.date) {
+      // Parse YYYY-MM-DD date and get day of week
+      const [y, m, d] = draw.date.split('-').map(Number);
+      const dayOfWeek = new Date(y, m - 1, d).getDay();
+      return DAY_COLORS[dayOfWeek];
+    }
+    // No date stored — use today's color
+    return DAY_COLORS[new Date().getDay()];
+  }
+
   // ── Render helpers ──
 
   function renderBallsPick3(numbers, color) {
@@ -280,9 +303,7 @@
   }
 
   function renderBallsDigit(numbers, color) {
-    // numbers array contains digits and "-" separators
     let html = '';
-    let inGroup = true;
     html += '<span class="ball-group">';
     for (let i = 0; i < numbers.length; i++) {
       if (numbers[i] === '-') {
@@ -296,11 +317,10 @@
   }
 
   function renderBalls(lottery, draw) {
-    const c = lottery.color;
+    const c = getBallColor(draw);
     if (lottery.format === 'pick3') {
       return renderBallsPick3(draw.numbers, c);
     } else {
-      // pick34, florida — digit-based with "-" separators in the numbers array
       return renderBallsDigit(draw.numbers, c);
     }
   }

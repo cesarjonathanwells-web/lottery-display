@@ -63,12 +63,16 @@ function updateDraw(lotteryId, drawTime, numbers, status) {
     return false;
   }
 
+  const today = new Date().toISOString().slice(0, 10);
   const drawIdx = findDrawIndex(found.lottery, drawTime);
   if (drawIdx === -1) {
     // Draw doesn't exist yet, add it
-    found.lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null });
+    found.lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null, date: today });
   } else {
-    if (numbers) found.lottery.draws[drawIdx].numbers = numbers;
+    if (numbers) {
+      found.lottery.draws[drawIdx].numbers = numbers;
+      found.lottery.draws[drawIdx].date = today;
+    }
     found.lottery.draws[drawIdx].status = status || null;
   }
 
