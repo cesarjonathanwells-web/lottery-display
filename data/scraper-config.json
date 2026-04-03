@@ -2,6 +2,7 @@
   "timezone": "America/New_York",
   "defaultTimeoutMinutes": 120,
   "pollIntervalSeconds": 45,
+  "verifyMinutes": 15,
   "scrapers": [
     {
       "lotteryId": "nacional",

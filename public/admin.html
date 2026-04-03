@@ -167,6 +167,22 @@
   }
   .btn-scrape:hover { background: var(--primary); color: #fff; }
   .btn-scrape:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── Corrections Log ── */
+  .corrections-list { padding: 10px 14px; }
+  .correction-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border: 1px solid #ffcc80; border-radius: 8px; background: #fff8e1;
+    margin-bottom: 6px; font-size: 13px;
+  }
+  .correction-item .corr-label {
+    font-weight: 700; color: #e65100; font-size: 11px; text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .correction-item .corr-old { color: var(--danger); text-decoration: line-through; }
+  .correction-item .corr-new { color: var(--success); font-weight: 700; }
+  .correction-item .corr-time { color: var(--muted); font-size: 11px; margin-left: auto; flex-shrink: 0; }
+  .no-corrections { padding: 10px 14px; color: var(--muted); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -298,7 +314,11 @@
       if (jobKeys.length > 0) {
         const latestJob = jobs[jobKeys[jobKeys.length - 1]];
         if (latestJob.status === 'polling') { statusCls = 'polling'; statusText = `Polling (${latestJob.attempts})`; }
-        else if (latestJob.status === 'completed') { statusCls = 'completed'; statusText = 'Done'; }
+        else if (latestJob.status === 'verifying') { statusCls = 'polling'; statusText = 'Verifying'; }
+        else if (latestJob.status === 'completed') {
+          statusCls = latestJob.corrected ? 'timeout' : 'completed';
+          statusText = latestJob.corrected ? 'Corrected' : 'Done';
+        }
         else if (latestJob.status === 'timeout') { statusCls = 'timeout'; statusText = 'Timeout'; }
       }
 
@@ -311,12 +331,33 @@
       </div>`;
     }).join('');
 
+    // Corrections log
+    const corrs = SCRAPER_STATUS.corrections || [];
+    let correctionsHtml = '';
+    if (corrs.length > 0) {
+      correctionsHtml = '<div class="corrections-list">' + corrs.map(c => {
+        const oldNums = c.oldNumbers.filter(n => n !== '-').join('-');
+        const newNums = c.newNumbers.filter(n => n !== '-').join('-');
+        const time = new Date(c.correctedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        return `<div class="correction-item">
+          <span class="corr-label">Corrected</span>
+          <span>${c.lotteryId} ${c.drawTime}</span>
+          <span class="corr-old">${oldNums}</span> &rarr;
+          <span class="corr-new">${newNums}</span>
+          <span class="corr-time">${time}</span>
+        </div>`;
+      }).join('') + '</div>';
+    } else {
+      correctionsHtml = '<div class="no-corrections">No corrections today</div>';
+    }
+
     panel.innerHTML = `<div class="scraper-panel">
       <div class="scraper-panel-header">
         <h3>Scraper Status</h3>
         <button class="btn-scrape" onclick="refreshScraperStatus()" style="border-color:#fff;color:#fff">Refresh</button>
       </div>
       <div class="scraper-grid">${items}</div>
+      ${correctionsHtml}
     </div>`;
   }
 

@@ -192,6 +192,10 @@
     letter-spacing: 1px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 20px;
   }
+  .status-corrected {
+    font-size: 10px; font-weight: 700; color: #e65100;
+    margin-left: 6px; letter-spacing: .5px;
+  }
 
   /* ══ TICKER ══ */
   .ticker {
@@ -339,8 +343,9 @@
     const rows = lottery.draws.map(draw => {
       const statusHtml = renderStatus(draw);
       const ballsHtml = statusHtml || renderBalls(lottery, draw);
+      const correctedTag = draw.corrected ? '<span class="status-corrected">CORRECTED</span>' : '';
       return `<div class="row">
-        <span class="time">${draw.time}</span>
+        <span class="time">${draw.time}${correctedTag}</span>
         <span class="balls">${ballsHtml}</span>
       </div>`;
     }).join('');

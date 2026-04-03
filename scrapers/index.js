@@ -11,8 +11,14 @@ const CONFIG_FILE = path.join(__dirname, '..', 'data', 'scraper-config.json');
 // Active polling jobs: key = "lotteryId:drawIndex", value = interval ID
 const activePollers = {};
 
+// Verification polling jobs (post-result monitoring)
+const verifyPollers = {};
+
 // Status tracking for admin panel
 const scraperStatus = {};
+
+// Correction log
+const corrections = [];
 
 function readData() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -158,6 +164,53 @@ async function runScrape(scraperConfig, drawConfig) {
 }
 
 /**
+ * Validate scraped numbers match expected format.
+ * Returns { valid: true } or { valid: false, reason: "..." }
+ */
+function validateNumbers(numbers, lotteryId) {
+  if (!numbers || !Array.isArray(numbers) || numbers.length === 0) {
+    return { valid: false, reason: 'empty or not an array' };
+  }
+
+  const data = readData();
+  const found = findLottery(data, lotteryId);
+  if (!found) return { valid: true }; // can't validate without format info
+
+  const format = found.lottery.format;
+  const digits = numbers.filter(n => n !== '-');
+
+  // Check no empty strings or undefined
+  if (digits.some(d => !d || d.trim() === '' || d === '--')) {
+    return { valid: false, reason: 'contains empty or placeholder values' };
+  }
+
+  if (format === 'pick3') {
+    // Expect 3 numbers, each 1-2 digits, range 00-99
+    if (digits.length !== 3) return { valid: false, reason: `pick3 expects 3 numbers, got ${digits.length}` };
+    for (const d of digits) {
+      const n = parseInt(d, 10);
+      if (isNaN(n) || n < 0 || n > 99) return { valid: false, reason: `invalid pick3 number: ${d}` };
+    }
+  } else if (format === 'pick34') {
+    // Expect 7 single digits (3 + separator + 4)
+    if (digits.length !== 7) return { valid: false, reason: `pick34 expects 7 digits, got ${digits.length}` };
+    for (const d of digits) {
+      const n = parseInt(d, 10);
+      if (isNaN(n) || n < 0 || n > 9) return { valid: false, reason: `invalid pick34 digit: ${d}` };
+    }
+  } else if (format === 'florida') {
+    // Expect 9-10 single digits (2 + 3 + 4 with separators)
+    if (digits.length < 9) return { valid: false, reason: `florida expects 9+ digits, got ${digits.length}` };
+    for (const d of digits) {
+      const n = parseInt(d, 10);
+      if (isNaN(n) || n < 0 || n > 9) return { valid: false, reason: `invalid florida digit: ${d}` };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
  * Check if scraped numbers differ from current stored numbers.
  */
 function hasNewNumbers(lotteryId, drawTime, newNumbers) {
@@ -173,10 +226,22 @@ function hasNewNumbers(lotteryId, drawTime, newNumbers) {
   const current = found.lottery.draws[drawIdx].numbers;
   if (!current || current.length === 0) return true;
 
-  // Compare arrays
   const currentStr = current.filter(n => n !== '-').join(',');
   const newStr = newNumbers.filter(n => n !== '-').join(',');
   return currentStr !== newStr;
+}
+
+/**
+ * Check if a draw already has published numbers (not pending/no_result).
+ */
+function hasPublishedNumbers(lotteryId, drawTime) {
+  const data = readData();
+  const found = findLottery(data, lotteryId);
+  if (!found) return false;
+  const drawIdx = findDrawIndex(found.lottery, drawTime);
+  if (drawIdx === -1) return false;
+  const draw = found.lottery.draws[drawIdx];
+  return draw.numbers && draw.numbers.length > 0 && !draw.status;
 }
 
 /**
@@ -185,15 +250,16 @@ function hasNewNumbers(lotteryId, drawTime, newNumbers) {
 function startPolling(scraperConfig, drawConfig, drawIndex) {
   const key = `${scraperConfig.lotteryId}:${drawIndex}`;
 
-  // Don't start if already polling
-  if (activePollers[key]) {
-    log(`Already polling ${key}`);
+  // Don't start if already polling or verifying
+  if (activePollers[key] || verifyPollers[key]) {
+    log(`Already polling/verifying ${key}`);
     return;
   }
 
   const config = readConfig();
   const pollInterval = (config.pollIntervalSeconds || 45) * 1000;
   const timeoutMs = (config.defaultTimeoutMinutes || 120) * 60 * 1000;
+  const verifyMs = (config.verifyMinutes || 15) * 60 * 1000;
   const startTime = Date.now();
 
   log(`Starting poll for ${scraperConfig.lotteryId} "${drawConfig.time}"`);
@@ -206,7 +272,8 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     status: 'polling',
     startedAt: new Date().toISOString(),
     lastCheck: null,
-    attempts: 0
+    attempts: 0,
+    corrected: false
   };
 
   // Immediate first check
@@ -230,24 +297,109 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     }
 
     const numbers = await runScrape(scraperConfig, drawConfig);
+    if (!numbers) return;
 
-    if (numbers && hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
+    // Validate before publishing
+    const validation = validateNumbers(numbers, scraperConfig.lotteryId);
+    if (!validation.valid) {
+      log(`Rejected invalid numbers for ${scraperConfig.lotteryId} "${drawConfig.time}": ${validation.reason}`);
+      scraperStatus[key].lastRejection = validation.reason;
+      return; // keep polling for valid data
+    }
+
+    if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
       log(`New result for ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')}`);
       updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null);
-      stopPolling(key);
-      scraperStatus[key].status = 'completed';
       scraperStatus[key].result = numbers;
+
+      // Stop initial polling, start verification polling
+      stopPolling(key);
+      scraperStatus[key].status = 'verifying';
+      startVerification(key, scraperConfig, drawConfig, numbers, verifyMs, pollInterval);
     }
   }
 }
 
 /**
- * Stop polling for a specific key.
+ * Verification polling: keep checking for 15 min after initial result.
+ * If the source corrects the numbers, auto-update and flag as corrected.
+ */
+function startVerification(key, scraperConfig, drawConfig, originalNumbers, verifyMs, pollInterval) {
+  const verifyStart = Date.now();
+
+  log(`Starting verification for ${scraperConfig.lotteryId} "${drawConfig.time}" (${Math.round(verifyMs / 60000)}min)`);
+
+  verifyPollers[key] = setInterval(async () => {
+    const elapsed = Date.now() - verifyStart;
+
+    // Verification window expired — all good
+    if (elapsed > verifyMs) {
+      log(`Verification complete for ${scraperConfig.lotteryId} "${drawConfig.time}" — no corrections`);
+      stopVerification(key);
+      scraperStatus[key].status = 'completed';
+      return;
+    }
+
+    try {
+      const numbers = await runScrape(scraperConfig, drawConfig);
+      if (!numbers) return;
+
+      const validation = validateNumbers(numbers, scraperConfig.lotteryId);
+      if (!validation.valid) return;
+
+      if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
+        // Source corrected the numbers!
+        const oldNums = scraperStatus[key].result || originalNumbers;
+        log(`CORRECTION for ${scraperConfig.lotteryId} "${drawConfig.time}": ${oldNums.join(',')} → ${numbers.join(',')}`);
+
+        updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null);
+
+        // Flag as corrected in the draw data
+        const data = readData();
+        const found = findLottery(data, scraperConfig.lotteryId);
+        if (found) {
+          const drawIdx = findDrawIndex(found.lottery, drawConfig.time);
+          if (drawIdx !== -1) {
+            found.lottery.draws[drawIdx].corrected = true;
+            writeData(data);
+          }
+        }
+
+        // Log the correction
+        corrections.push({
+          lotteryId: scraperConfig.lotteryId,
+          drawTime: drawConfig.time,
+          oldNumbers: oldNums,
+          newNumbers: numbers,
+          correctedAt: new Date().toISOString()
+        });
+
+        scraperStatus[key].result = numbers;
+        scraperStatus[key].corrected = true;
+      }
+    } catch (err) {
+      log(`Verify error for ${scraperConfig.lotteryId}: ${err.message}`);
+    }
+  }, pollInterval);
+}
+
+/**
+ * Stop initial polling for a specific key.
  */
 function stopPolling(key) {
   if (activePollers[key]) {
     clearInterval(activePollers[key]);
     delete activePollers[key];
+  }
+}
+
+/**
+ * Stop verification polling for a specific key.
+ */
+function stopVerification(key) {
+  if (verifyPollers[key]) {
+    clearInterval(verifyPollers[key]);
+    delete verifyPollers[key];
   }
 }
 
@@ -314,15 +466,19 @@ function init() {
     }
   }
 
-  // Daily reset at midnight: clear all statuses
+  // Daily reset at midnight: clear all statuses and correction log
   cron.schedule('0 0 * * *', () => {
     log('Midnight reset: clearing all scraper statuses');
     for (const key of Object.keys(activePollers)) {
       stopPolling(key);
     }
+    for (const key of Object.keys(verifyPollers)) {
+      stopVerification(key);
+    }
     for (const key of Object.keys(scraperStatus)) {
       delete scraperStatus[key];
     }
+    corrections.length = 0;
   }, { timezone: config.timezone || 'America/New_York' });
 
   log(`Scheduler initialized with ${config.scrapers.length} lottery configs`);
@@ -334,7 +490,9 @@ function init() {
 function getStatus() {
   return {
     activePollers: Object.keys(activePollers),
-    jobs: scraperStatus
+    verifyPollers: Object.keys(verifyPollers),
+    jobs: scraperStatus,
+    corrections
   };
 }
 
