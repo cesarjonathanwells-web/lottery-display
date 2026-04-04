@@ -100,16 +100,16 @@ async function fetchGame(gameKey) {
 }
 
 /**
- * Check if the result date matches today.
- * lotterycorner dates look like: "Fri, Apr 03, 2026"
+ * Check if the result date matches today in US Eastern time.
+ * lotterycorner dates look like: "...Fri, Apr 03, 2026"
  */
 function isToday(dateText) {
   if (!dateText) return false;
-  const today = new Date();
-  const todayStr = today.toLocaleDateString('en-US', {
-    month: 'short', day: '2-digit', year: 'numeric'
+  // Use Eastern timezone since all US lottery draws are EST/EDT
+  const today = new Date().toLocaleDateString('en-US', {
+    timeZone: 'America/New_York', month: 'short', day: '2-digit', year: 'numeric'
   }); // "Apr 03, 2026"
-  return dateText.includes(todayStr.replace(/^0/, ''));
+  return dateText.includes(today);
 }
 
 /**
