@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { getToday } = require('./utils');
+const { getToday, log } = require('./utils');
 
 const PAGE_URL = 'https://www.conectate.com.do/loterias/';
 
@@ -116,6 +116,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
     if (p4) { numbers.push('-'); numbers.push(...p4); }
 
     const date = (p3game && p3game.date) || (p4game && p4game.date) || null;
+    log(`${scraperConfig.lotteryId} "${drawConfig.time}" source date: ${date}`);
     return { numbers, date, closed: false };
   }
 
@@ -128,6 +129,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
 
   const format = scraperConfig.format || 'pick3';
   const numbers = formatNumbers(game.numbers, format);
+  log(`${scraperConfig.lotteryId} "${drawConfig.gameName || drawConfig.time}" source date: ${game.date}`);
   return { numbers, date: game.date, closed: false };
 }
 
