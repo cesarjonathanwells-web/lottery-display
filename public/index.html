@@ -94,6 +94,11 @@
     flex-shrink: 0; height: var(--card-head-h);
     padding: 0 14px; display: flex; align-items: center;
   }
+  .card-logo {
+    height: 28px; width: auto; border-radius: 4px; flex-shrink: 0;
+    object-fit: contain; background: rgba(255,255,255,.9);
+    padding: 2px; margin-right: 8px;
+  }
   .card-title {
     font-size: 20px; font-weight: 800; letter-spacing: .5px;
     color: #fff; text-transform: uppercase;
@@ -250,6 +255,24 @@
   }
   tick(); setInterval(tick, 1000);
 
+  const LOGOS = {
+    anguilla:     'https://saturn.azureedge.net/resources/images/lottery/anguila/logo_loteria_anguilla.webp',
+    ocean:        'https://goldoceanlottery.net/assets/img/goldoceanlogo-e1700467252604%20(1).png',
+    lotedom:      'https://saturn.azureedge.net/resources/images/lottery/lotedom/logo_lotedom.webp',
+    laprimera:    'https://saturn.azureedge.net/resources/images/lottery/la-primera/logo_la_primera.svg',
+    lasuerte:     'https://saturn.azureedge.net/resources/images/lottery/la-suerte/logo_la_suerte.svg',
+    kinglottery:  'https://saturn.azureedge.net/resources/images/lottery/king-lottery/logo-king-lottery.webp',
+    real:         'https://saturn.azureedge.net/resources/images/lottery/real/logo.svg',
+    nacional:     'https://saturn.azureedge.net/resources/images/lottery/nacional/logo_nacional.svg',
+    loteka:       'https://saturn.azureedge.net/resources/images/lottery/loteka/logo_loteka.svg',
+    quinielapale: 'https://saturn.azureedge.net/resources/images/lottery/leidsa/logo_leidsa.svg',
+    georgia:      'https://saturn.azureedge.net/resources/images/lottery/georgia-lottery/logo-georgia-lottery.webp',
+    newjersey:    'https://static.cdnlogo.com/logos/n/17/new-jersey-lottery.svg',
+    florida:      'https://saturn.azureedge.net/resources/images/lottery/florida-lottery/logo-florida-lottery.webp',
+    connecticut:  'https://upload.wikimedia.org/wikipedia/en/f/fc/CTLOTTO.png',
+    newyork:      'https://saturn.azureedge.net/resources/images/lottery/ny-lottery/nylottery-logo.svg'
+  };
+
   // Tableau-inspired accessible palette — dark enough for WCAG AA on pastel bg
   const DAY_COLORS = [
     '#c62828', // Sunday - Red
@@ -351,6 +374,7 @@
 
     return `<div class="card">
       <div class="card-head" style="background:linear-gradient(90deg,${lottery.color},${lighten(lottery.color)})">
+        ${LOGOS[lottery.id] ? `<img class="card-logo" src="${LOGOS[lottery.id]}" alt="">` : ''}
         <span class="card-title">${lottery.name}</span>
         ${renderCardStatusBadge(cardStatus)}
       </div>
