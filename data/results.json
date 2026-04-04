@@ -204,7 +204,7 @@
                 "82"
               ],
               "date": "2026-04-04",
-              "status": "pending"
+              "status": null
             },
             {
               "time": "9:00 PM",
@@ -282,12 +282,12 @@
             {
               "time": "6:00 PM",
               "numbers": [
-                "66",
-                "53",
-                "41"
+                "39",
+                "68",
+                "90"
               ],
-              "date": "2026-04-02",
-              "status": "pending"
+              "date": "2026-04-04",
+              "status": null
             }
           ]
         }
@@ -406,7 +406,7 @@
         {
           "id": "newjersey",
           "name": "New Jersey",
-          "color": "#1a5ca0",
+          "color": "#1a7a3a",
           "format": "pick34",
           "draws": [
             {
