@@ -458,6 +458,30 @@ async function manualScrape(lotteryId) {
 }
 
 /**
+ * Scrape ALL lotteries in parallel. One call updates everything.
+ */
+async function scrapeAll() {
+  const config = readConfig();
+  const allScrapers = config.scrapers.filter(s => s.source !== 'manual');
+
+  const startMs = Date.now();
+  log('Scrape-all started');
+
+  const results = await Promise.all(allScrapers.map(async (sc) => {
+    try {
+      return { lotteryId: sc.lotteryId, ...(await manualScrape(sc.lotteryId)) };
+    } catch (err) {
+      return { lotteryId: sc.lotteryId, error: err.message };
+    }
+  }));
+
+  const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
+  log(`Scrape-all finished in ${elapsed}s`);
+
+  return { elapsed: `${elapsed}s`, results };
+}
+
+/**
  * Parse a draw time like "2:30 PM" or "10:00 AM" into { hours, minutes } in 24h format.
  */
 function parseDrawTime(timeStr) {
@@ -528,4 +552,4 @@ function getStatus() {
   };
 }
 
-module.exports = { init, getStatus, manualScrape };
+module.exports = { init, getStatus, manualScrape, scrapeAll };

@@ -98,26 +98,22 @@ async function scrapeDraw(drawTime) {
 }
 
 /**
- * Scrape all 15 Anguilla draws at once.
+ * Scrape all 15 Anguilla draws at once, fully parallel.
  * Returns a map: { "8:00 AM": { numbers, date, closed }, ... }
  */
 async function scrapeAll() {
   const results = {};
   const times = Object.keys(TIME_TO_SLUG);
 
-  // Scrape in batches of 5 to avoid overwhelming the server
-  for (let i = 0; i < times.length; i += 5) {
-    const batch = times.slice(i, i + 5);
-    const promises = batch.map(async (time) => {
-      try {
-        const result = await scrapeDraw(time);
-        if (result) results[time] = result;
+  const promises = times.map(async (time) => {
+    try {
+      const result = await scrapeDraw(time);
+      if (result) results[time] = result;
       } catch (err) {
         // Skip failed draws
       }
     });
-    await Promise.all(promises);
-  }
+  await Promise.all(promises);
 
   return results;
 }

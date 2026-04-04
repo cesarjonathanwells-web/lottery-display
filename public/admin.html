@@ -203,6 +203,7 @@
   <div class="header">
     <h1>Lottery Admin</h1>
     <div class="header-actions">
+      <button class="btn btn-outline" id="scrapeAllBtn" onclick="scrapeAllLotteries(this)" style="background:#2e7d32;border-color:#2e7d32;color:#fff">Scrape All</button>
       <button class="btn btn-danger" onclick="clearAll()">Clear All Results</button>
       <button class="btn btn-outline" onclick="logout()">Logout</button>
     </div>
@@ -360,6 +361,32 @@
       <div class="scraper-grid">${items}</div>
       ${correctionsHtml}
     </div>`;
+  }
+
+  async function scrapeAllLotteries(btn) {
+    btn.disabled = true;
+    btn.textContent = 'Scraping all...';
+    try {
+      const res = await fetch('/api/scraper/run-all', {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      if (res.ok) {
+        const result = await res.json();
+        showToast(`All lotteries updated in ${result.elapsed}`);
+        await loadData();
+        await refreshScraperStatus();
+      } else if (res.status === 401) {
+        showToast('Session expired', true);
+        logout();
+      } else {
+        showToast('Scrape-all failed', true);
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, true);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Scrape All';
   }
 
   async function triggerScrape(lotteryId, btn) {

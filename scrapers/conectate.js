@@ -9,11 +9,20 @@ const HEADERS = {
   'Accept-Language': 'en-US,en;q=0.9,es;q=0.8'
 };
 
+// Cache: one fetch serves all Dominican lotteries
+let _cache = null;
+let _cacheTime = 0;
+const CACHE_TTL = 30000; // 30 seconds
+
 /**
  * Scrapes conectate.com.do and returns all lottery results found on the page.
+ * Cached for 30s so multiple lotteries share one fetch.
  * Returns: { "Game Name": { numbers: ["27", "72", "16"], date: "03-04" }, ... }
  */
 async function scrape() {
+  const now = Date.now();
+  if (_cache && (now - _cacheTime) < CACHE_TTL) return _cache;
+
   const { data: html } = await axios.get(URL, { headers: HEADERS, timeout: 15000 });
   const $ = cheerio.load(html);
   const results = {};
@@ -43,6 +52,8 @@ async function scrape() {
     }
   });
 
+  _cache = results;
+  _cacheTime = Date.now();
   return results;
 }
 

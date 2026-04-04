@@ -129,6 +129,15 @@ app.get('/api/scraper-status', authMiddleware, (req, res) => {
   res.json(scraper.getStatus());
 });
 
+app.post('/api/scraper/run-all', authMiddleware, async (req, res) => {
+  try {
+    const result = await scraper.scrapeAll();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/scraper/run/:lotteryId', authMiddleware, async (req, res) => {
   const { lotteryId } = req.params;
   try {
