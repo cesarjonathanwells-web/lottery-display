@@ -48,7 +48,7 @@ function findDrawIndex(lottery, drawTime) {
 
 // ── Draw updates ──────────────────────────────────────────────
 
-function updateDraw(lotteryId, drawTime, numbers, status) {
+function updateDraw(lotteryId, drawTime, numbers, status, date) {
   const data = readData();
   const lottery = findLottery(data, lotteryId);
   if (!lottery) {
@@ -56,15 +56,15 @@ function updateDraw(lotteryId, drawTime, numbers, status) {
     return false;
   }
 
-  const today = getToday();
+  const drawDate = date || getToday();
   const idx = findDrawIndex(lottery, drawTime);
 
   if (idx === -1) {
-    lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null, date: today });
+    lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null, date: drawDate });
   } else {
     if (numbers) {
       lottery.draws[idx].numbers = numbers;
-      lottery.draws[idx].date = today;
+      lottery.draws[idx].date = drawDate;
     }
     lottery.draws[idx].status = status || null;
   }
@@ -207,7 +207,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
 
     if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
       log(`Result: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')}`);
-      updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null);
+      updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null, result.date);
       scraperStatus[key].result = numbers;
       stopPolling(key);
       scraperStatus[key].status = 'verifying';
@@ -298,7 +298,7 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
       if (dateOk) {
         const validation = validateNumbers(result.numbers, lotteryId);
         if (validation.valid && hasNewNumbers(lotteryId, drawConfig.time, result.numbers)) {
-          updateDraw(lotteryId, drawConfig.time, result.numbers, null);
+          updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
           results.push({ time: drawConfig.time, numbers: result.numbers, updated: true });
           continue;
         }
