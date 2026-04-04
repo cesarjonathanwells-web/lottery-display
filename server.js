@@ -22,6 +22,19 @@ function writeData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function todayET() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+
+function findInData(data, lotteryId) {
+  for (const col of data.columns) {
+    for (const lottery of col.lotteries) {
+      if (lottery.id === lotteryId) return lottery;
+    }
+  }
+  return null;
+}
+
 // Simple token store (in-memory, resets on restart)
 const tokens = new Set();
 
@@ -56,7 +69,8 @@ app.post('/api/login', (req, res) => {
 
 // Update a specific draw's numbers
 app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
-  const { lotteryId, drawIndex } = req.params;
+  const { lotteryId } = req.params;
+  const idx = parseInt(req.params.drawIndex, 10);
   const { numbers, time, date, clearStatus } = req.body;
 
   if (numbers && (!Array.isArray(numbers) || !numbers.every(n => typeof n === 'string'))) {
@@ -67,65 +81,66 @@ app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
   }
 
   const data = readData();
-  const idx = parseInt(drawIndex, 10);
+  const lottery = findInData(data, lotteryId);
 
-  for (const col of data.columns) {
-    for (const lottery of col.lotteries) {
-      if (lottery.id === lotteryId && lottery.draws[idx]) {
-        if (numbers) {
-          lottery.draws[idx].numbers = numbers;
-          // Admin override clears any scraper status
-          delete lottery.draws[idx].status;
-          delete lottery.draws[idx].corrected;
-        }
-        if (time) lottery.draws[idx].time = time;
-        if (clearStatus) {
-          delete lottery.draws[idx].status;
-          delete lottery.draws[idx].corrected;
-        }
-        lottery.draws[idx].date = date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-        writeData(data);
-        return res.json({ ok: true });
-      }
-    }
+  if (!lottery || !lottery.draws[idx]) {
+    return res.status(404).json({ error: 'Draw not found' });
   }
-  res.status(404).json({ error: 'Draw not found' });
+
+  if (numbers) {
+    lottery.draws[idx].numbers = numbers;
+    // Admin override clears any scraper status
+    delete lottery.draws[idx].status;
+    delete lottery.draws[idx].corrected;
+  }
+  if (time) lottery.draws[idx].time = time;
+  if (clearStatus) {
+    delete lottery.draws[idx].status;
+    delete lottery.draws[idx].corrected;
+  }
+  lottery.draws[idx].date = date || todayET();
+  writeData(data);
+  res.json({ ok: true });
 });
 
 // Add a new draw to a lottery
 app.post('/api/results/:lotteryId/draws', authMiddleware, (req, res) => {
   const { lotteryId } = req.params;
   const { time, numbers } = req.body;
-  const data = readData();
 
-  for (const col of data.columns) {
-    for (const lottery of col.lotteries) {
-      if (lottery.id === lotteryId) {
-        lottery.draws.push({ time, numbers, date: new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) });
-        writeData(data);
-        return res.json({ ok: true });
-      }
-    }
+  if (numbers && (!Array.isArray(numbers) || !numbers.every(n => typeof n === 'string'))) {
+    return res.status(400).json({ error: 'numbers must be an array of strings' });
   }
-  res.status(404).json({ error: 'Lottery not found' });
+  if (time && typeof time !== 'string') {
+    return res.status(400).json({ error: 'time must be a string' });
+  }
+
+  const data = readData();
+  const lottery = findInData(data, lotteryId);
+
+  if (!lottery) {
+    return res.status(404).json({ error: 'Lottery not found' });
+  }
+
+  lottery.draws.push({ time, numbers, date: todayET() });
+  writeData(data);
+  res.json({ ok: true });
 });
 
 // Delete a draw
 app.delete('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
-  const { lotteryId, drawIndex } = req.params;
+  const { lotteryId } = req.params;
+  const idx = parseInt(req.params.drawIndex, 10);
   const data = readData();
-  const idx = parseInt(drawIndex, 10);
+  const lottery = findInData(data, lotteryId);
 
-  for (const col of data.columns) {
-    for (const lottery of col.lotteries) {
-      if (lottery.id === lotteryId && lottery.draws[idx]) {
-        lottery.draws.splice(idx, 1);
-        writeData(data);
-        return res.json({ ok: true });
-      }
-    }
+  if (!lottery || !lottery.draws[idx]) {
+    return res.status(404).json({ error: 'Draw not found' });
   }
-  res.status(404).json({ error: 'Draw not found' });
+
+  lottery.draws.splice(idx, 1);
+  writeData(data);
+  res.json({ ok: true });
 });
 
 // Clear all draws for all lotteries

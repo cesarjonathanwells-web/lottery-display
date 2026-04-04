@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { hasTimePassed, isToday, log } = require('./utils');
+const { hasTimePassed, isToday, cachedFetch, log } = require('./utils');
 
 const BASE_URL = 'https://lotterycoast.com/lottery-results';
 
@@ -36,41 +36,40 @@ const GAME_MAP = {
   }
 };
 
-const _cache = {};
+const _cache = new Map();
 const CACHE_TTL = 30000;
 
 async function scrapeState(state) {
   const url = STATE_URLS[state];
   if (!url) return {};
 
-  const now = Date.now();
-  if (_cache[state] && (now - _cache[state].time) < CACHE_TTL) return _cache[state].data;
+  return cachedFetch(_cache, state, CACHE_TTL, async () => {
+    const html = await fetchPage(url);
+    if (!html) return {};
+    const $ = cheerio.load(html);
+    const results = {};
+    let currentDate = '';
 
-  const html = await fetchPage(url);
-  const $ = cheerio.load(html);
-  const results = {};
-  let currentDate = '';
-
-  // Walk DOM in order — date headers precede their result rows
-  $('time[datetime], div.row.my-3').each((_, el) => {
-    const $el = $(el);
-    if ($el.is('time[datetime]')) {
-      currentDate = $el.attr('datetime') || '';
-    } else {
-      const label = $el.find('strong.fs-6').text().trim();
-      if (!label) return;
-      const digits = [];
-      $el.find('span.draw-digit').not('.bg-gradient-warning').each((_, d) => {
-        digits.push($(d).text().trim());
-      });
-      if (digits.length > 0) {
-        results[label] = { digits, date: currentDate };
+    // Walk DOM in order — date headers precede their result rows
+    $('time[datetime], div.row.my-3').each((_, el) => {
+      const $el = $(el);
+      if ($el.is('time[datetime]')) {
+        currentDate = $el.attr('datetime') || '';
+      } else {
+        const label = $el.find('strong.fs-6').text().trim();
+        if (!label) return;
+        const digits = [];
+        $el.find('span.draw-digit').not('.bg-gradient-warning').each((_, d) => {
+          digits.push($(d).text().trim());
+        });
+        if (digits.length > 0) {
+          results[label] = { digits, date: currentDate };
+        }
       }
-    }
-  });
+    });
 
-  _cache[state] = { data: results, time: now };
-  return results;
+    return results;
+  });
 }
 
 function getDigits(data, name) {

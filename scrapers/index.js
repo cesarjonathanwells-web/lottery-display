@@ -46,9 +46,23 @@ function findDrawIndex(lottery, drawTime) {
   return lottery.draws.findIndex(d => d.time === drawTime);
 }
 
+// ── Timer helper ─────────────────────────────────────────────
+
+function stopTimer(map, key) {
+  if (map[key]) { clearInterval(map[key]); delete map[key]; }
+}
+
+// ── Scrape result helpers ────────────────────────────────────
+
+function countUpdatedResults(results) {
+  return results.filter(r =>
+    r.results && r.results.some(d => d.updated)
+  ).length;
+}
+
 // ── Draw updates ──────────────────────────────────────────────
 
-function updateDraw(lotteryId, drawTime, numbers, status, date) {
+function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
   const data = readData();
   const lottery = findLottery(data, lotteryId);
   if (!lottery) {
@@ -67,6 +81,10 @@ function updateDraw(lotteryId, drawTime, numbers, status, date) {
       lottery.draws[idx].date = drawDate;
     }
     lottery.draws[idx].status = status || null;
+  }
+
+  if (extra && idx !== -1) {
+    Object.assign(lottery.draws[idx], extra);
   }
 
   writeData(data);
@@ -178,7 +196,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
 
     if (Date.now() - startTime > timeoutMs) {
       log(`Timeout: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
-      stopPolling(key);
+      stopTimer(activePollers, key);
       updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'no_result');
       scraperStatus[key].status = 'timeout';
       return;
@@ -190,7 +208,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     if (result.closed) {
       log(`Closed: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
       updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'closed');
-      stopPolling(key);
+      stopTimer(activePollers, key);
       scraperStatus[key].status = 'closed';
       return;
     }
@@ -209,7 +227,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
       log(`Result: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')} (date: ${result.date})`);
       updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null, result.date);
       scraperStatus[key].result = numbers;
-      stopPolling(key);
+      stopTimer(activePollers, key);
       scraperStatus[key].status = 'verifying';
       startVerification(key, scraperConfig, drawConfig, numbers, verifyMs, pollInterval);
     }
@@ -223,7 +241,7 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
   verifyPollers[key] = setInterval(async () => {
     if (Date.now() - verifyStart > verifyMs) {
       log(`Verified: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
-      stopVerification(key);
+      stopTimer(verifyPollers, key);
       scraperStatus[key].status = 'completed';
       return;
     }
@@ -239,17 +257,7 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
         const oldNums = scraperStatus[key].result || originalNumbers;
         log(`Correction: ${scraperConfig.lotteryId} "${drawConfig.time}": ${oldNums.join(',')} → ${result.numbers.join(',')} (date: ${result.date})`);
 
-        updateDraw(scraperConfig.lotteryId, drawConfig.time, result.numbers, null);
-
-        const data = readData();
-        const lottery = findLottery(data, scraperConfig.lotteryId);
-        if (lottery) {
-          const drawIdx = findDrawIndex(lottery, drawConfig.time);
-          if (drawIdx !== -1) {
-            lottery.draws[drawIdx].corrected = true;
-            writeData(data);
-          }
-        }
+        updateDraw(scraperConfig.lotteryId, drawConfig.time, result.numbers, null, result.date, { corrected: true });
 
         corrections.push({
           lotteryId: scraperConfig.lotteryId,
@@ -266,14 +274,6 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
       log(`Verify error ${scraperConfig.lotteryId}: ${err.message}`);
     }
   }, pollInterval);
-}
-
-function stopPolling(key) {
-  if (activePollers[key]) { clearInterval(activePollers[key]); delete activePollers[key]; }
-}
-
-function stopVerification(key) {
-  if (verifyPollers[key]) { clearInterval(verifyPollers[key]); delete verifyPollers[key]; }
 }
 
 // ── Manual / bulk scraping ────────────────────────────────────
@@ -304,14 +304,7 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
           continue;
         }
         // Numbers unchanged but clear any stale pending/no_result status
-        const data = readData();
-        const lottery = findLottery(data, lotteryId);
-        if (lottery) {
-          const di = findDrawIndex(lottery, drawConfig.time);
-          if (di !== -1 && lottery.draws[di].status) {
-            updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
-          }
-        }
+        updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
       }
       results.push({ time: drawConfig.time, updated: false });
     } else {
@@ -342,6 +335,54 @@ async function scrapeAll({ acceptRecent = false } = {}) {
 
 // ── Initialization ────────────────────────────────────────────
 
+function scheduleMidnightReset() {
+  cron.schedule('0 0 * * *', () => {
+    log('Midnight reset');
+    Object.keys(activePollers).forEach(k => stopTimer(activePollers, k));
+    Object.keys(verifyPollers).forEach(k => stopTimer(verifyPollers, k));
+    Object.keys(scraperStatus).forEach(k => delete scraperStatus[k]);
+    corrections.length = 0;
+
+    // Clear statuses in data file so the new day starts fresh
+    const data = readData();
+    for (const col of data.columns) {
+      for (const lottery of col.lotteries) {
+        for (const draw of lottery.draws) {
+          delete draw.status;
+          delete draw.corrected;
+        }
+      }
+    }
+    writeData(data);
+    log('Cleared all draw statuses for new day');
+  }, { timezone: TIMEZONE });
+}
+
+function startupCatchUp() {
+  setTimeout(async () => {
+    log('Startup catch-up...');
+    try {
+      const result = await scrapeAll({ acceptRecent: true });
+      const updated = countUpdatedResults(result.results);
+      log(`Catch-up done in ${result.elapsed} — ${updated} lotteries updated`);
+    } catch (err) {
+      log(`Catch-up error: ${err.message}`);
+    }
+  }, 5000);
+}
+
+function schedulePeriodicScrape() {
+  cron.schedule('*/10 * * * *', async () => {
+    try {
+      const result = await scrapeAll({ acceptRecent: false });
+      const updated = countUpdatedResults(result.results);
+      if (updated > 0) log(`Periodic scrape: ${updated} updated in ${result.elapsed}`);
+    } catch (err) {
+      log(`Periodic scrape error: ${err.message}`);
+    }
+  }, { timezone: TIMEZONE });
+}
+
 function init() {
   const config = readConfig();
   log('Initializing scheduler...');
@@ -363,56 +404,15 @@ function init() {
     }
   }
 
-  // Midnight reset
-  cron.schedule('0 0 * * *', () => {
-    log('Midnight reset');
-    Object.keys(activePollers).forEach(stopPolling);
-    Object.keys(verifyPollers).forEach(stopVerification);
-    Object.keys(scraperStatus).forEach(k => delete scraperStatus[k]);
-    corrections.length = 0;
-
-    // Clear statuses in data file so the new day starts fresh
-    const data = readData();
-    for (const col of data.columns) {
-      for (const lottery of col.lotteries) {
-        for (const draw of lottery.draws) {
-          delete draw.status;
-          delete draw.corrected;
-        }
-      }
-    }
-    writeData(data);
-    log('Cleared all draw statuses for new day');
-  }, { timezone: TIMEZONE });
+  scheduleMidnightReset();
 
   log(`Scheduler ready: ${config.scrapers.length} lotteries`);
 
   // Startup catch-up: accept today + yesterday's results
-  setTimeout(async () => {
-    log('Startup catch-up...');
-    try {
-      const result = await scrapeAll({ acceptRecent: true });
-      const updated = result.results.filter(r =>
-        r.results && r.results.some(d => d.updated)
-      ).length;
-      log(`Catch-up done in ${result.elapsed} — ${updated} lotteries updated`);
-    } catch (err) {
-      log(`Catch-up error: ${err.message}`);
-    }
-  }, 5000);
+  startupCatchUp();
 
   // Periodic re-scrape every 10 minutes (today only)
-  cron.schedule('*/10 * * * *', async () => {
-    try {
-      const result = await scrapeAll({ acceptRecent: false });
-      const updated = result.results.filter(r =>
-        r.results && r.results.some(d => d.updated)
-      ).length;
-      if (updated > 0) log(`Periodic scrape: ${updated} updated in ${result.elapsed}`);
-    } catch (err) {
-      log(`Periodic scrape error: ${err.message}`);
-    }
-  }, { timezone: TIMEZONE });
+  schedulePeriodicScrape();
 }
 
 function getStatus() {

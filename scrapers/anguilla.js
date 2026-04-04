@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { getToday, log } = require('./utils');
+const { getToday, padNumbers, log } = require('./utils');
 
 const BASE_URL = 'https://enloteria.com/resultados-anguilla-';
 const TIME_TO_SLUG = {
@@ -15,6 +15,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   if (!slug) return null;
 
   const html = await fetchPage(`${BASE_URL}${slug}`);
+  if (!html) return null;
   const $ = cheerio.load(html);
 
   const scriptEl = $('script[type="application/ld+json"]').first();
@@ -30,12 +31,14 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   const today = getToday();
   const todayEvent = events.find(e => e.startDate && e.startDate.slice(0, 10) === today);
   const latest = todayEvent || events[0];
+
+  if (!latest.startDate) return null;
   const date = latest.startDate.slice(0, 10);
 
   const numMatch = (latest.description || '').match(/Números ganadores:\s*(.+)\./);
   if (!numMatch) return null;
 
-  const numbers = numMatch[1].split(',').map(n => n.trim().padStart(2, '0'));
+  const numbers = padNumbers(numMatch[1].split(',').map(n => n.trim()));
   if (numbers.length !== 3) return null;
   log(`anguilla "${drawConfig.time}" source date: ${date}`);
   return { numbers, date, closed: false };

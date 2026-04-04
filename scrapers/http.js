@@ -10,6 +10,9 @@ async function fetchPage(url, retries = 2) {
   for (let i = 0; i <= retries; i++) {
     try {
       const { data } = await axios.get(url, { headers: HEADERS, timeout: 15000 });
+      if (typeof data === 'string' && data.trim().length === 0) {
+        throw new Error(`Empty response body from ${url}`);
+      }
       return data;
     } catch (err) {
       if (i === retries) throw err;

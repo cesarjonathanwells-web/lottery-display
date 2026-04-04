@@ -4,6 +4,8 @@ function getToday() {
   return new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE });
 }
 
+const todayET = getToday;
+
 function getNowEST() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
 }
@@ -38,9 +40,23 @@ function isRecent(dateStr) {
   return dateStr === yesterday.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
+async function cachedFetch(cache, key, ttl, fetcher) {
+  const entry = cache.get(key);
+  if (entry && (Date.now() - entry.ts) < ttl) {
+    return entry.data;
+  }
+  const data = await fetcher();
+  cache.set(key, { data, ts: Date.now() });
+  return data;
+}
+
+function padNumbers(arr) {
+  return arr.map(n => String(n).padStart(2, '0'));
+}
+
 function log(msg) {
   const ts = new Date().toLocaleTimeString('en-US', { timeZone: TIMEZONE });
   console.log(`[Scraper ${ts}] ${msg}`);
 }
 
-module.exports = { TIMEZONE, getToday, getNowEST, parseDrawTime, hasTimePassed, isToday, isRecent, log };
+module.exports = { TIMEZONE, getToday, todayET, getNowEST, parseDrawTime, hasTimePassed, isToday, isRecent, cachedFetch, padNumbers, log };
