@@ -90,19 +90,46 @@ async function scrapeState(state) {
  */
 function isToday(dateStr) {
   if (!dateStr) return false;
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // "2026-04-03"
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   return dateStr === today;
 }
 
 /**
+ * Check if a draw time has already passed today (EST).
+ * Prevents accepting yesterday's leftover numbers for draws that haven't happened yet.
+ * @param {string} drawTime - e.g. "2:30 PM", "10:30 PM", "11:40 PM"
+ */
+function hasDrawTimePassed(drawTime) {
+  const m = drawTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!m) return true; // can't parse, assume it passed
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const period = m[3].toUpperCase();
+  if (period === 'PM' && h !== 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+
+  const now = new Date();
+  const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const nowMinutes = estNow.getHours() * 60 + estNow.getMinutes();
+  const drawMinutes = h * 60 + min;
+
+  return nowMinutes >= drawMinutes;
+}
+
+/**
  * Scrape a specific draw for a state, returning combined pick3+pick4 numbers.
+ * Only returns results if the page date is today AND the draw time has passed.
  * @param {string} state - "ny", "fl", "ga", "nj", "ct"
  * @param {string} session - "midday", "evening", "night", "day"
  * @param {string} format - "pick34" or "florida"
+ * @param {string} drawTime - the scheduled draw time (e.g. "11:40 PM") to verify it's passed
  */
-async function scrapeDraw(state, session, format) {
+async function scrapeDraw(state, session, format, drawTime) {
   const data = await scrapeState(state);
   if (!data._date || !isToday(data._date)) return null;
+
+  // Don't accept numbers for draws that haven't happened yet
+  if (drawTime && !hasDrawTimePassed(drawTime)) return null;
 
   const gameMap = GAME_MAP[state]?.[session];
   if (!gameMap) return null;

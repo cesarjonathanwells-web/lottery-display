@@ -70,7 +70,7 @@ function updateDraw(lotteryId, drawTime, numbers, status) {
     return false;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const drawIdx = findDrawIndex(found.lottery, drawTime);
   if (drawIdx === -1) {
     // Draw doesn't exist yet, add it
@@ -134,7 +134,8 @@ async function scrapeLotterycoast(scraperConfig, drawConfig) {
   const result = await lotterycoast.scrapeDraw(
     scraperConfig.state,
     drawConfig.session,
-    scraperConfig.displayFormat || 'pick34'
+    scraperConfig.displayFormat || 'pick34',
+    drawConfig.time
   );
   if (!result) return null;
   return result.numbers;
@@ -145,7 +146,7 @@ async function scrapeAnguilla(scraperConfig, drawConfig) {
   if (!result) return null;
   if (result.closed) return { closed: true };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   if (result.date !== today) return null; // not today's result
 
   return result.numbers;
