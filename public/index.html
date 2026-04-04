@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lottery Results Board</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-deep:     #e8edf5;
@@ -26,7 +25,7 @@
   body {
     background: var(--bg-deep);
     color: var(--dark);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Calibri', 'Trebuchet MS', sans-serif;
     display: flex;
     flex-direction: column;
   }
@@ -133,7 +132,6 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 900; flex-shrink: 0;
     font-feature-settings: 'tnum';
-    border: 2px solid;
   }
   .ball   { width: 38px; height: 38px; font-size: 20px; letter-spacing: -0.5px; }
   .ball-d { width: 30px; height: 30px; font-size: 20px; letter-spacing: -0.5px; }
@@ -281,7 +279,7 @@
   function renderBallsPick3(numbers, color) {
     const bg = paleBg(color);
     return numbers.map((n, i) => {
-      const ball = `<span class="ball" style="background:${bg};color:${color};border-color:${color}">${n}</span>`;
+      const ball = `<span class="ball" style="background:${bg};color:${color}">${n}</span>`;
       const group = `<span class="ball-group">${ball}</span>`;
       return (i < numbers.length - 1) ? group + '<span class="ball-sep">-</span>' : group;
     }).join('');
@@ -294,7 +292,7 @@
       if (numbers[i] === '-') {
         html += '</span><span class="ball-sep">-</span><span class="ball-group">';
       } else {
-        html += `<span class="ball-d" style="background:${bg};color:${color};border-color:${color}">${numbers[i]}</span>`;
+        html += `<span class="ball-d" style="background:${bg};color:${color}">${numbers[i]}</span>`;
       }
     }
     return html + '</span>';
