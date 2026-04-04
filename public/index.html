@@ -176,26 +176,38 @@
   .ball   { width: 38px; height: 38px; font-size: 17px; }
   .ball-d { width: 30px; height: 30px; font-size: 18px; }
 
-  /* ══ STATUS BADGES ══ */
+  /* ══ STATUS BADGES (card header) ══ */
+  .card-status {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 12px;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .card-status-closed {
+    background: rgba(255,255,255,.2); color: #fff;
+  }
+  .card-status-pending {
+    background: #ff8f00; color: #fff;
+    animation: pulse-pending 1.5s ease-in-out infinite;
+  }
+  .card-status-noresult {
+    background: rgba(255,255,255,.2); color: rgba(255,255,255,.7);
+  }
+  @keyframes pulse-pending {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+
+  /* ══ ROW-LEVEL STATUS (inline, for pending rows without numbers) ══ */
   .status-pending {
     background: linear-gradient(90deg, #ff8f00, #ffa726);
     color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
     text-transform: uppercase; padding: 4px 14px; border-radius: 20px;
     animation: pulse-pending 1.5s ease-in-out infinite;
   }
-  @keyframes pulse-pending {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .5; }
-  }
   .status-noresult {
     background: #bdbdbd; color: #fff; font-size: 12px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 20px;
-  }
-  .status-closed {
-    background: linear-gradient(90deg, #455a64, #607d8b);
-    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; padding: 4px 16px; border-radius: 20px;
   }
   .status-corrected {
     font-size: 10px; font-weight: 700; color: #e65100;
@@ -334,23 +346,49 @@
     }
   }
 
-  function renderStatus(draw) {
-    if (draw.status === 'pending') {
-      return '<span class="status-pending">Pending</span>';
-    }
-    if (draw.status === 'no_result') {
-      return '<span class="status-noresult">No Result</span>';
-    }
-    if (draw.status === 'closed') {
-      return '<span class="status-closed">No Draw Today</span>';
-    }
+  function getCardStatus(lottery) {
+    // Determine the overall status for the card header
+    const statuses = lottery.draws.map(d => d.status).filter(Boolean);
+    if (statuses.length === 0) return null;
+    if (statuses.every(s => s === 'closed')) return 'closed';
+    if (statuses.some(s => s === 'pending')) return 'pending';
+    if (statuses.every(s => s === 'no_result')) return 'no_result';
+    if (statuses.some(s => s === 'closed')) return 'closed';
     return null;
   }
 
+  function renderCardStatusBadge(status) {
+    if (status === 'closed') return '<span class="card-status card-status-closed">No Draw Today</span>';
+    if (status === 'pending') return '<span class="card-status card-status-pending">Pending</span>';
+    if (status === 'no_result') return '<span class="card-status card-status-noresult">No Result</span>';
+    return '';
+  }
+
+  function renderRowBalls(lottery, draw) {
+    // For closed draws: always show previous numbers (they keep their old day color)
+    if (draw.status === 'closed') {
+      if (draw.numbers && draw.numbers.length > 0) {
+        return renderBalls(lottery, draw);
+      }
+      return ''; // no previous numbers to show
+    }
+    // For pending draws with no numbers yet: show inline badge
+    if (draw.status === 'pending' && (!draw.numbers || draw.numbers.length === 0)) {
+      return '<span class="status-pending">Pending</span>';
+    }
+    // For no_result: show inline badge
+    if (draw.status === 'no_result' && (!draw.numbers || draw.numbers.length === 0)) {
+      return '<span class="status-noresult">No Result</span>';
+    }
+    // Normal: show numbers
+    return renderBalls(lottery, draw);
+  }
+
   function renderCard(lottery) {
+    const cardStatus = getCardStatus(lottery);
+
     const rows = lottery.draws.map(draw => {
-      const statusHtml = renderStatus(draw);
-      const ballsHtml = statusHtml || renderBalls(lottery, draw);
+      const ballsHtml = renderRowBalls(lottery, draw);
       const correctedTag = draw.corrected ? '<span class="status-corrected">CORRECTED</span>' : '';
       return `<div class="row">
         <span class="time">${draw.time}${correctedTag}</span>
@@ -361,6 +399,7 @@
     return `<div class="card">
       <div class="card-head" style="background:linear-gradient(90deg,${lottery.color},${lighten(lottery.color)})">
         <span class="card-title">${lottery.name}</span>
+        ${renderCardStatusBadge(cardStatus)}
       </div>
       ${rows}
     </div>`;
