@@ -303,6 +303,15 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
           results.push({ time: drawConfig.time, numbers: result.numbers, date: result.date, updated: true });
           continue;
         }
+        // Numbers unchanged but clear any stale pending/no_result status
+        const data = readData();
+        const lottery = findLottery(data, lotteryId);
+        if (lottery) {
+          const di = findDrawIndex(lottery, drawConfig.time);
+          if (di !== -1 && lottery.draws[di].status) {
+            updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
+          }
+        }
       }
       results.push({ time: drawConfig.time, updated: false });
     } else {
