@@ -31,13 +31,15 @@ async function fetchAll() {
       if (num) numbers.push(num);
     });
 
-    // Convert dd-mm to YYYY-MM-DD
+    // Convert dd-mm or dd-mm-yyyy to YYYY-MM-DD
     let date = null;
     if (dateRaw) {
       const parts = dateRaw.split('-').map(Number);
       if (parts.length === 2 && parts[0] && parts[1]) {
         const year = new Date().getFullYear();
         date = `${year}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+      } else if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        date = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
       }
     }
 
@@ -68,6 +70,11 @@ function formatNumbers(numbers, format) {
     const allSingleDigit = numbers.every(n => n.length === 1);
     if (allSingleDigit && numbers.length >= 7) {
       return [numbers[0], numbers[1], numbers[2], '-', numbers[3], numbers[4], numbers[5], numbers[6]];
+    }
+    // If source provides 3 two-digit numbers, it only has pick3 (quiniela) — return as-is
+    const allTwoDigit = numbers.every(n => n.length === 2);
+    if (allTwoDigit && numbers.length === 3) {
+      return numbers;
     }
     const digits = numbers.join('').split('');
     if (digits.length >= 6) {
