@@ -98,34 +98,50 @@
     },
     {
       "lotteryId": "newyork",
-      "source": "conectate",
+      "source": "lotterycorner",
+      "state": "ny",
       "draws": [
-        { "time": "2:30 PM", "gameName": "New York 3:30", "startPolling": "14:25" },
-        { "time": "10:30 PM", "gameName": "New York 11:30", "startPolling": "22:25" }
+        { "time": "2:30 PM", "session": "midday" },
+        { "time": "10:30 PM", "session": "evening" }
       ]
     },
     {
       "lotteryId": "florida",
-      "source": "conectate",
+      "source": "lotterycorner",
+      "state": "fl",
+      "displayFormat": "florida",
       "draws": [
-        { "time": "1:30 PM", "gameName": "Florida Día", "startPolling": "13:25" },
-        { "time": "10:00 PM", "gameName": "Florida Noche", "startPolling": "21:55" }
+        { "time": "1:30 PM", "session": "midday" },
+        { "time": "10:00 PM", "session": "evening" }
       ]
     },
     {
       "lotteryId": "georgia",
-      "source": "manual",
-      "draws": []
+      "source": "lotterycorner",
+      "state": "ga",
+      "draws": [
+        { "time": "12:30 PM", "session": "midday" },
+        { "time": "7:00 PM", "session": "evening" },
+        { "time": "11:40 PM", "session": "night" }
+      ]
     },
     {
       "lotteryId": "newjersey",
-      "source": "manual",
-      "draws": []
+      "source": "lotterycorner",
+      "state": "nj",
+      "draws": [
+        { "time": "1:00 PM", "session": "midday" },
+        { "time": "11:00 PM", "session": "evening" }
+      ]
     },
     {
       "lotteryId": "connecticut",
-      "source": "manual",
-      "draws": []
+      "source": "lotterycorner",
+      "state": "ct",
+      "draws": [
+        { "time": "2:00 PM", "session": "day" },
+        { "time": "10:30 PM", "session": "night" }
+      ]
     }
   ]
 }
