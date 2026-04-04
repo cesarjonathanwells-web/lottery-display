@@ -4,116 +4,154 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lottery Results Board</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   /* ══ DESIGN TOKENS ══ */
   :root {
-    --bg-deep:     #e8edf5;
-    --bg-panel:    #ffffff;
-    --border:      #c8d4e8;
-    --mid:         #4a5f7a;
-    --dark:        #1a2a40;
+    --bg:           #0a0e1a;
+    --bg-card:      rgba(15, 23, 42, 0.85);
+    --bg-row-alt:   rgba(255,255,255,0.025);
+    --bg-row-hover: rgba(59,130,246,0.07);
+    --border:       rgba(255,255,255,0.06);
+    --text:         #e2e8f0;
+    --text-dim:     #64748b;
+    --accent:       #3b82f6;
+    --accent-glow:  rgba(59,130,246,0.4);
+    --gold:         #f59e0b;
 
-    --header-h:    62px;
-    --ticker-h:    40px;
-    --main-pad:    10px;
-    --card-head-h: 46px;
-    --card-gap:    10px;
-
+    --header-h:    58px;
+    --ticker-h:    42px;
+    --pad:         8px;
+    --card-head-h: 44px;
+    --card-gap:    8px;
     --row-h: calc(
-      (100vh - var(--header-h) - var(--ticker-h) - var(--main-pad) * 2 - var(--card-head-h))
+      (100vh - var(--header-h) - var(--ticker-h) - var(--pad)*2 - var(--card-head-h))
       / 15
     );
   }
 
   /* ══ RESET ══ */
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  /* ══ LAYOUT ROOT ══ */
-  html, body { height: 100%; overflow: hidden; }
+  *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
 
   body {
-    background: var(--bg-deep);
-    color: var(--dark);
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Poppins', sans-serif;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
+  }
+
+  /* ══ BACKGROUND TEXTURE (dot-grid) ══ */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══ AMBIENT GLOW ══ */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.06), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   /* ══ HEADER ══ */
   header {
+    position: relative;
     flex-shrink: 0;
     height: var(--header-h);
-    background: linear-gradient(180deg, #1a3560, #1e3d6e);
-    border-bottom: 2px solid #2c5090;
+    background: linear-gradient(180deg, #0f172a, #1e293b);
     padding: 0 24px;
     display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,.2);
     z-index: 100;
+  }
+
+  /* Accent line under header */
+  header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent) 20%, #60a5fa 50%, var(--accent) 80%, transparent);
+    opacity: 0.7;
   }
 
   .logo { display: flex; align-items: center; gap: 10px; }
   .logo-icon {
-    width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
-    background: linear-gradient(135deg, #1565c0, #5bc8ff);
+    width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), #60a5fa);
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 900; color: #fff;
+    font-size: 17px; font-weight: 900; color: #fff;
+    box-shadow: 0 0 12px var(--accent-glow);
   }
   .logo-text {
-    font-size: 18px; font-weight: 900; letter-spacing: 1px;
+    font-size: 17px; font-weight: 900; letter-spacing: 1px;
     color: #fff; text-transform: uppercase; line-height: 1;
   }
   .logo-sub {
-    font-size: 10px; letter-spacing: 3px;
-    color: rgba(255,255,255,.45); text-transform: uppercase; margin-top: 2px;
+    font-size: 9px; letter-spacing: 3px;
+    color: rgba(255,255,255,0.35); text-transform: uppercase; margin-top: 2px;
   }
 
   .hdr-center { text-align: center; }
   .hdr-warn {
-    font-size: 20px; font-weight: 700; letter-spacing: 1px;
-    color: #ffcc80; text-transform: uppercase;
-    animation: blink 2.2s step-end infinite;
+    font-size: 17px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--gold); text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(245,158,11,0.3);
+    animation: warnPulse 3s ease-in-out infinite;
   }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+  @keyframes warnPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
 
   .clock-wrap { text-align: right; }
   .hdr-date {
-    font-size: 11px; letter-spacing: 2px;
-    color: rgba(255,255,255,.55); text-transform: uppercase; margin-bottom: 2px;
+    font-size: 10px; letter-spacing: 2px;
+    color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 1px;
   }
-  .clock { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 2px; line-height: 1; }
+  .clock {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px; font-weight: 700; color: #60a5fa; letter-spacing: 3px; line-height: 1;
+    text-shadow: 0 0 12px rgba(96,165,250,0.4);
+  }
 
   /* ══ MAIN GRID ══ */
   main {
-    flex: 1;
-    min-height: 0;
+    position: relative; z-index: 1;
+    flex: 1; min-height: 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--card-gap);
-    padding: var(--main-pad);
+    padding: var(--pad);
     overflow: hidden;
     align-items: start;
   }
 
-  /* ══ COLUMN ══ */
   .col-wrap {
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
     gap: var(--card-gap);
   }
 
   /* ══ CARD ══ */
   .card {
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-panel);
+    display: flex; flex-direction: column;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-    animation: rise .45s ease both;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: cardRise .5s ease both;
   }
-  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes cardRise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   /* ══ CARD HEADER ══ */
   .card-head {
@@ -121,13 +159,51 @@
     height: var(--card-head-h);
     padding: 0 14px;
     display: flex; align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Subtle inner shine on card header */
+  .card-head::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+    pointer-events: none;
   }
   .card-title {
-    font-size: 20px; font-weight: 700; letter-spacing: .5px;
+    font-size: 18px; font-weight: 700; letter-spacing: .5px;
     color: #fff; text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    position: relative; z-index: 1;
   }
 
-  /* ══ ROW ══ */
+  /* ══ CARD STATUS BADGES ══ */
+  .card-status {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 12px;
+    margin-left: auto; flex-shrink: 0;
+    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .card-status-closed {
+    background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
+  }
+  .card-status-pending {
+    background: rgba(245,158,11,0.25); color: #fbbf24;
+  }
+  .card-status-pending::before {
+    content: '';
+    width: 6px; height: 6px;
+    border: 1.5px solid rgba(251,191,36,0.3);
+    border-top-color: #fbbf24;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .card-status-noresult {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);
+  }
+
+  /* ══ ROWS ══ */
   .row {
     height: var(--row-h);
     flex-shrink: 0;
@@ -135,116 +211,208 @@
     padding: 0 14px;
     gap: 8px;
     border-bottom: 1px solid var(--border);
-    transition: background .15s;
+    transition: background .2s;
   }
+  .row:nth-child(even) { background: var(--bg-row-alt); }
   .row:last-child { border-bottom: none; }
-  .row:hover      { background: #eef3fc; }
+  .row:hover { background: var(--bg-row-hover); }
+
+  /* Row flash animation for new results */
+  .row-new {
+    animation: rowFlash 2.5s ease-out;
+  }
+  @keyframes rowFlash {
+    0%  { background: rgba(59,130,246,0.2); }
+    100%{ background: transparent; }
+  }
 
   /* ══ TIME LABEL ══ */
   .time {
-    width: 90px; flex-shrink: 0;
-    font-size: 18px; font-weight: 600;
-    color: var(--mid); letter-spacing: .5px; line-height: 1;
+    width: 88px; flex-shrink: 0;
+    font-size: 16px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: .5px; line-height: 1;
   }
 
-  /* ══ BALLS ══ */
+  /* ══ BALLS CONTAINER ══ */
   .balls {
     flex: 1;
     display: flex; align-items: center; justify-content: flex-end;
     gap: 3px;
   }
-
   .ball-group {
-    display: flex; align-items: center;
-    gap: 3px;
+    display: flex; align-items: center; gap: 3px;
   }
-
   .ball-sep {
-    font-size: 20px; font-weight: 900;
-    color: var(--mid); line-height: 1;
+    font-size: 18px; font-weight: 900;
+    color: var(--text-dim); line-height: 1;
     flex-shrink: 0; margin: 0 1px;
   }
 
+  /* ══ 3D BALLS ══ */
   .ball, .ball-d {
+    --c: #3b82f6;
+    position: relative;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-weight: 900; color: #fff; flex-shrink: 0;
     font-variant-numeric: tabular-nums;
-    box-shadow: 0 2px 5px rgba(0,0,0,.18);
+    overflow: hidden;
+    background: var(--c);
+    background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.45) 0%, transparent 52%);
+    box-shadow:
+      inset 0 -3px 5px rgba(0,0,0,0.35),
+      inset 0 1px 2px rgba(255,255,255,0.15),
+      0 2px 6px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   }
 
-  .ball   { width: 38px; height: 38px; font-size: 17px; }
-  .ball-d { width: 30px; height: 30px; font-size: 18px; }
-
-  /* ══ STATUS BADGES (card header) ══ */
-  .card-status {
-    font-size: 9px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; padding: 3px 10px; border-radius: 12px;
-    margin-left: auto; flex-shrink: 0;
-  }
-  .card-status-closed {
-    background: rgba(255,255,255,.2); color: #fff;
-  }
-  .card-status-pending {
-    background: #ff8f00; color: #fff;
-    animation: pulse-pending 1.5s ease-in-out infinite;
-  }
-  .card-status-noresult {
-    background: rgba(255,255,255,.2); color: rgba(255,255,255,.7);
-  }
-  @keyframes pulse-pending {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .5; }
+  /* Glossy highlight */
+  .ball::after, .ball-d::after {
+    content: '';
+    position: absolute;
+    top: 6%; left: 18%;
+    width: 50%; height: 30%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: rotate(-12deg);
+    pointer-events: none;
   }
 
-  /* ══ ROW-LEVEL STATUS (inline, for pending rows without numbers) ══ */
+  .ball   { width: 38px; height: 38px; font-size: 16px; }
+  .ball-d { width: 30px; height: 30px; font-size: 17px; }
+
+  /* Subtle glow on today's results */
+  .ball-today, .ball-d-today {
+    box-shadow:
+      inset 0 -3px 5px rgba(0,0,0,0.35),
+      inset 0 1px 2px rgba(255,255,255,0.15),
+      0 2px 6px rgba(0,0,0,0.5),
+      0 0 10px rgba(255,255,255,0.08);
+  }
+
+  /* Pop-in animation */
+  .ball-pop, .ball-d-pop {
+    animation: ballPop .45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    animation-delay: calc(var(--i, 0) * 0.07s);
+  }
+  @keyframes ballPop {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.15); }
+    80%  { transform: scale(0.95); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ══ ROW STATUS INDICATORS ══ */
   .status-pending {
-    background: linear-gradient(90deg, #ff8f00, #ffa726);
-    color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; padding: 4px 14px; border-radius: 20px;
-    animation: pulse-pending 1.5s ease-in-out infinite;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #fbbf24; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 14px; border-radius: 20px;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+  .status-pending::before {
+    content: '';
+    width: 8px; height: 8px;
+    border: 2px solid rgba(251,191,36,0.3);
+    border-top-color: #fbbf24;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
   .status-noresult {
-    background: #bdbdbd; color: #fff; font-size: 12px; font-weight: 700;
+    color: var(--text-dim); font-size: 11px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
   }
   .status-corrected {
-    font-size: 10px; font-weight: 700; color: #e65100;
-    margin-left: 6px; letter-spacing: .5px;
+    font-size: 9px; font-weight: 700; color: #f97316;
+    margin-left: 5px; letter-spacing: .5px;
   }
   .row-status {
-    font-size: 9px; font-weight: 700; letter-spacing: .5px;
+    font-size: 8px; font-weight: 700; letter-spacing: .5px;
     text-transform: uppercase; padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 4px;
   }
   .row-status-pending {
-    background: #fff3e0; color: #e65100;
-    animation: pulse-pending 1.5s ease-in-out infinite;
+    background: rgba(245,158,11,0.12); color: #fbbf24;
   }
-  .row-status-noresult { background: #f5f5f5; color: #9e9e9e; }
+  .row-status-pending::before {
+    content: '';
+    width: 5px; height: 5px;
+    border: 1.5px solid rgba(251,191,36,0.3);
+    border-top-color: #fbbf24;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .row-status-noresult {
+    background: rgba(255,255,255,0.05); color: var(--text-dim);
+  }
 
   /* ══ TICKER ══ */
   .ticker {
+    position: relative;
     flex-shrink: 0;
     height: var(--ticker-h);
-    background: #1a3560;
-    border-top: 2px solid #2c5090;
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    border-top: 1px solid rgba(59,130,246,0.15);
     display: flex; align-items: center; overflow: hidden;
     z-index: 100;
+  }
+  /* Fade edges */
+  .ticker-fade-l, .ticker-fade-r {
+    position: absolute; top: 0; bottom: 0;
+    width: 50px; z-index: 10; pointer-events: none;
+  }
+  .ticker-fade-l {
+    left: 68px;
+    background: linear-gradient(90deg, #1e293b, transparent);
+  }
+  .ticker-fade-r {
+    right: 0;
+    background: linear-gradient(270deg, #1e293b, transparent);
   }
   .ticker-tag {
     flex-shrink: 0;
     height: 100%; padding: 0 16px;
-    background: #fff; color: #1a3560;
-    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    background: #dc2626;
+    color: #fff;
+    font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
     display: flex; align-items: center;
+    position: relative; z-index: 20;
   }
-  .ticker-track { display: flex; animation: scroll 55s linear infinite; white-space: nowrap; }
-  .ticker-item  { font-size: 14px; letter-spacing: 1.5px; color: rgba(255,255,255,.65); padding: 0 32px; }
-  .ticker-item b { font-size: 14px; color: #fff; font-weight: 700; }
-  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  /* Arrow on tag */
+  .ticker-tag::after {
+    content: '';
+    position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-left-color: #dc2626;
+  }
+  .ticker-track {
+    display: flex;
+    animation: tickerScroll 55s linear infinite;
+    white-space: nowrap;
+    padding-left: 20px;
+  }
+  .ticker-item {
+    font-size: 13px; letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.5); padding: 0 28px;
+  }
+  .ticker-item b {
+    font-size: 13px; color: #fff; font-weight: 700;
+  }
+  .ticker-ball {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    font-size: 10px; font-weight: 900; color: #fff;
+    margin: 0 1px; vertical-align: middle;
+    background-image: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35), transparent 55%);
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,0.3);
+  }
+  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  /* ══ MOBILE FALLBACK ══ */
+  /* ══ MOBILE ══ */
   @media (max-width: 900px) {
     html, body { overflow: auto; height: auto; }
     main { grid-template-columns: repeat(2, 1fr); height: auto; overflow: visible; }
@@ -253,9 +421,11 @@
   @media (max-width: 540px) {
     main      { grid-template-columns: 1fr; }
     header    { height: auto; padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
-    .hdr-warn { font-size: 15px; }
-    .clock    { font-size: 20px; }
+    .hdr-warn { font-size: 13px; }
+    .clock    { font-size: 18px; }
     .row      { height: 48px; }
+    .ball     { width: 34px; height: 34px; font-size: 14px; }
+    .ball-d   { width: 26px; height: 26px; font-size: 15px; }
   }
 </style>
 </head>
@@ -281,7 +451,9 @@
 <main id="board"></main>
 
 <div class="ticker">
-  <div class="ticker-tag">RESULTS</div>
+  <div class="ticker-tag">LIVE</div>
+  <div class="ticker-fade-l"></div>
+  <div class="ticker-fade-r"></div>
   <div class="ticker-track" id="ticker"></div>
 </div>
 
@@ -299,49 +471,53 @@
   }
   tick(); setInterval(tick, 1000);
 
-  // ── Day-of-week ball colors ──
-  // Index 0 = Sunday, 1 = Monday, ... 6 = Saturday
+  // ── Ball colors by day-of-week (vibrant for dark theme) ──
   const DAY_COLORS = [
-    '#c62828', // Sunday - Red
-    '#1565c0', // Monday - Blue
-    '#2e7d32', // Tuesday - Green
-    '#6a1b9a', // Wednesday - Purple
-    '#e65100', // Thursday - Orange
-    '#00838f', // Friday - Teal
-    '#283593'  // Saturday - Indigo
+    '#ef4444', // Sunday - Red
+    '#3b82f6', // Monday - Blue
+    '#22c55e', // Tuesday - Green
+    '#a855f7', // Wednesday - Purple
+    '#f97316', // Thursday - Orange
+    '#06b6d4', // Friday - Cyan
+    '#6366f1'  // Saturday - Indigo
   ];
-
-  // Muted gray for old results with no date
-  const OLD_RESULT_COLOR = '#90a4ae';
+  const OLD_RESULT_COLOR = '#475569';
 
   function getBallColor(draw) {
     if (draw.date) {
       const [y, m, d] = draw.date.split('-').map(Number);
-      const dayOfWeek = new Date(y, m - 1, d).getDay();
-      return DAY_COLORS[dayOfWeek];
+      return DAY_COLORS[new Date(y, m - 1, d).getDay()];
     }
-    // No date stored — these are old/previous results, show muted
     return OLD_RESULT_COLOR;
+  }
+
+  function isDrawToday(draw) {
+    if (!draw.date) return false;
+    return draw.date === new Date().toISOString().slice(0, 10);
   }
 
   // ── Render helpers ──
 
-  function renderBallsPick3(numbers, color) {
+  function renderBallsPick3(numbers, color, today) {
+    const cls = today ? 'ball ball-pop ball-today' : 'ball ball-pop';
     return numbers.map((n, i) => {
-      const ball = `<span class="ball" style="background:${color}">${n}</span>`;
+      const ball = `<span class="${cls}" style="--c:${color};--i:${i}">${n}</span>`;
       const group = `<span class="ball-group">${ball}</span>`;
       return (i < numbers.length - 1) ? group + '<span class="ball-sep">-</span>' : group;
     }).join('');
   }
 
-  function renderBallsDigit(numbers, color) {
+  function renderBallsDigit(numbers, color, today) {
+    const cls = today ? 'ball-d ball-d-pop ball-d-today' : 'ball-d ball-d-pop';
     let html = '';
+    let idx = 0;
     html += '<span class="ball-group">';
     for (let i = 0; i < numbers.length; i++) {
       if (numbers[i] === '-') {
         html += '</span><span class="ball-sep">-</span><span class="ball-group">';
       } else {
-        html += `<span class="ball-d" style="background:${color}">${numbers[i]}</span>`;
+        html += `<span class="${cls}" style="--c:${color};--i:${idx}">${numbers[i]}</span>`;
+        idx++;
       }
     }
     html += '</span>';
@@ -350,37 +526,28 @@
 
   function renderBalls(lottery, draw) {
     const c = getBallColor(draw);
+    const today = isDrawToday(draw);
+    return lottery.format === 'pick3'
+      ? renderBallsPick3(draw.numbers, c, today)
+      : renderBallsDigit(draw.numbers, c, today);
+  }
+
+  // ── Ticker balls (mini) ──
+
+  function renderTickerBalls(lottery, draw) {
+    const c = getBallColor(draw);
     if (lottery.format === 'pick3') {
-      return renderBallsPick3(draw.numbers, c);
-    } else {
-      return renderBallsDigit(draw.numbers, c);
+      return draw.numbers.map(n =>
+        `<span class="ticker-ball" style="background-color:${c}">${n}</span>`
+      ).join('');
     }
+    return draw.numbers.filter(n => n !== '-').map(n =>
+      `<span class="ticker-ball" style="background-color:${c}">${n}</span>`
+    ).join('');
   }
 
-  function getCardStatus(lottery) {
-    const hasClosed = lottery.draws.some(d => d.status === 'closed');
-    const allClosed = lottery.draws.every(d => d.status === 'closed');
-    const hasPending = lottery.draws.some(d => d.status === 'pending' || isDrawPastDue(d));
-    const allNoResult = lottery.draws.every(d => d.status === 'no_result');
+  // ── Status helpers ──
 
-    if (allClosed) return 'closed';
-    if (hasPending) return 'pending';
-    if (allNoResult) return 'no_result';
-    if (hasClosed) return 'closed';
-    return null;
-  }
-
-  function renderCardStatusBadge(status) {
-    if (status === 'closed') return '<span class="card-status card-status-closed">No Draw Today</span>';
-    if (status === 'pending') return '<span class="card-status card-status-pending">Pending</span>';
-    if (status === 'no_result') return '<span class="card-status card-status-noresult">No Result</span>';
-    return '';
-  }
-
-  /**
-   * Parse a draw time like "2:30 PM" into minutes since midnight.
-   * Returns null for unparseable times (e.g. "Toca 3").
-   */
   function parseTimeToMinutes(timeStr) {
     const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (!m) return null;
@@ -392,55 +559,70 @@
     return h * 60 + min;
   }
 
-  /**
-   * Check if a draw should show as "pending" based on the clock.
-   * True when: draw time has passed today AND draw has no today's numbers AND not closed.
-   */
   function isDrawPastDue(draw) {
     if (draw.status === 'closed') return false;
-    if (draw.status === 'pending') return true; // already marked by scraper
-
+    if (draw.status === 'pending') return true;
     const drawMin = parseTimeToMinutes(draw.time);
     if (drawMin === null) return false;
-
     const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    if (nowMin < drawMin) return false; // draw hasn't happened yet
-
-    // Draw time has passed — check if we have today's numbers
+    if ((now.getHours() * 60 + now.getMinutes()) < drawMin) return false;
     const today = now.toISOString().slice(0, 10);
-    if (draw.date === today && !draw.status) return false; // already updated today
+    if (draw.date === today && !draw.status) return false;
     return true;
+  }
+
+  function getCardStatus(lottery) {
+    const allClosed = lottery.draws.every(d => d.status === 'closed');
+    const hasPending = lottery.draws.some(d => d.status === 'pending' || isDrawPastDue(d));
+    const allNoResult = lottery.draws.every(d => d.status === 'no_result');
+    if (allClosed) return 'closed';
+    if (hasPending) return 'pending';
+    if (allNoResult) return 'no_result';
+    if (lottery.draws.some(d => d.status === 'closed')) return 'closed';
+    return null;
+  }
+
+  function renderCardStatusBadge(status) {
+    if (status === 'closed')    return '<span class="card-status card-status-closed">No Draw Today</span>';
+    if (status === 'pending')   return '<span class="card-status card-status-pending">Pending</span>';
+    if (status === 'no_result') return '<span class="card-status card-status-noresult">No Result</span>';
+    return '';
   }
 
   function renderRowBalls(lottery, draw) {
     const hasNumbers = draw.numbers && draw.numbers.length > 0;
     const pastDue = isDrawPastDue(draw);
 
-    // Closed: show previous numbers, no extra indicator
     if (draw.status === 'closed') {
       return hasNumbers ? renderBalls(lottery, draw) : '';
     }
-
-    // Pending (from scraper or from clock): show indicator + old numbers
     if (draw.status === 'pending' || pastDue) {
       const badge = '<span class="row-status row-status-pending">Pending</span>';
       return hasNumbers ? badge + renderBalls(lottery, draw) : '<span class="status-pending">Pending</span>';
     }
-
-    // No result: show indicator + old numbers if available
     if (draw.status === 'no_result') {
       const badge = '<span class="row-status row-status-noresult">No Result</span>';
       return hasNumbers ? badge + renderBalls(lottery, draw) : '<span class="status-noresult">No Result</span>';
     }
-
-    // Normal: just numbers
     return hasNumbers ? renderBalls(lottery, draw) : '';
+  }
+
+  // ── Card rendering ──
+
+  function lighten(hex, f = 0.2) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    const lr = Math.min(255, Math.round(r+(255-r)*f)), lg = Math.min(255, Math.round(g+(255-g)*f)), lb = Math.min(255, Math.round(b+(255-b)*f));
+    return `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`;
+  }
+
+  function darken(hex, f = 0.3) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    const dr = Math.round(r*(1-f)), dg = Math.round(g*(1-f)), db = Math.round(b*(1-f));
+    return `#${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')}`;
   }
 
   function renderCard(lottery) {
     const cardStatus = getCardStatus(lottery);
-
     const rows = lottery.draws.map(draw => {
       const ballsHtml = renderRowBalls(lottery, draw);
       const correctedTag = draw.corrected ? '<span class="status-corrected">CORRECTED</span>' : '';
@@ -450,8 +632,9 @@
       </div>`;
     }).join('');
 
+    const bg = `background:linear-gradient(135deg,${darken(lottery.color,0.15)},${darken(lottery.color,0.35)})`;
     return `<div class="card">
-      <div class="card-head" style="background:linear-gradient(90deg,${lottery.color},${lighten(lottery.color)})">
+      <div class="card-head" style="${bg}">
         <span class="card-title">${lottery.name}</span>
         ${renderCardStatusBadge(cardStatus)}
       </div>
@@ -459,21 +642,8 @@
     </div>`;
   }
 
-  function lighten(hex) {
-    // Simple lighten: blend toward white by ~15%
-    const r = parseInt(hex.slice(1,3), 16);
-    const g = parseInt(hex.slice(3,5), 16);
-    const b = parseInt(hex.slice(5,7), 16);
-    const f = 0.15;
-    const lr = Math.min(255, Math.round(r + (255 - r) * f));
-    const lg = Math.min(255, Math.round(g + (255 - g) * f));
-    const lb = Math.min(255, Math.round(b + (255 - b) * f));
-    return `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`;
-  }
-
   function renderBoard(data) {
-    const board = document.getElementById('board');
-    board.innerHTML = data.columns.map(col =>
+    document.getElementById('board').innerHTML = data.columns.map(col =>
       `<div class="col-wrap">${col.lotteries.map(renderCard).join('')}</div>`
     ).join('');
   }
@@ -487,9 +657,9 @@
             items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>PENDING</b></span>`);
           } else if (draw.status === 'no_result' || draw.status === 'closed') {
             continue;
-          } else {
-            const nums = draw.numbers.join(draw.numbers.includes('-') ? '' : '-');
-            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>${nums}</b></span>`);
+          } else if (draw.numbers && draw.numbers.length) {
+            const balls = renderTickerBalls(lottery, draw);
+            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; ${balls}</span>`);
           }
         }
       }
@@ -498,7 +668,7 @@
     document.getElementById('ticker').innerHTML = html + html;
   }
 
-  // ── Fetch and refresh (only on change) ──
+  // ── Fetch and refresh ──
 
   let lastDataHash = '';
 
@@ -506,10 +676,8 @@
     try {
       const res = await fetch('/api/results');
       const text = await res.text();
-
-      if (text === lastDataHash) return; // no change
+      if (text === lastDataHash) return;
       lastDataHash = text;
-
       const data = JSON.parse(text);
       renderBoard(data);
       renderTicker(data);
