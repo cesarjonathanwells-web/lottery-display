@@ -35,7 +35,7 @@ function isRecent(dateStr) {
   if (isToday(dateStr)) return true;
   const yesterday = new Date(getNowEST());
   yesterday.setDate(yesterday.getDate() - 1);
-  return dateStr === yesterday.toISOString().slice(0, 10);
+  return dateStr === yesterday.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
 function log(msg) {
