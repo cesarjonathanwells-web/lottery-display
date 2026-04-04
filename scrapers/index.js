@@ -206,7 +206,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     }
 
     if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
-      log(`Result: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')}`);
+      log(`Result: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')} (date: ${result.date})`);
       updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null, result.date);
       scraperStatus[key].result = numbers;
       stopPolling(key);
@@ -237,7 +237,7 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
 
       if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, result.numbers)) {
         const oldNums = scraperStatus[key].result || originalNumbers;
-        log(`Correction: ${scraperConfig.lotteryId} "${drawConfig.time}": ${oldNums.join(',')} → ${result.numbers.join(',')}`);
+        log(`Correction: ${scraperConfig.lotteryId} "${drawConfig.time}": ${oldNums.join(',')} → ${result.numbers.join(',')} (date: ${result.date})`);
 
         updateDraw(scraperConfig.lotteryId, drawConfig.time, result.numbers, null);
 
@@ -298,8 +298,9 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
       if (dateOk) {
         const validation = validateNumbers(result.numbers, lotteryId);
         if (validation.valid && hasNewNumbers(lotteryId, drawConfig.time, result.numbers)) {
+          log(`Update: ${lotteryId} "${drawConfig.time}": ${result.numbers.join(',')} (date: ${result.date})`);
           updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
-          results.push({ time: drawConfig.time, numbers: result.numbers, updated: true });
+          results.push({ time: drawConfig.time, numbers: result.numbers, date: result.date, updated: true });
           continue;
         }
       }
