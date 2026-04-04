@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { getToday } = require('./utils');
+const { getToday, log } = require('./utils');
 
 const BASE_URL = 'https://enloteria.com/resultados-anguilla-';
 const TIME_TO_SLUG = {
@@ -36,7 +36,9 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   if (!numMatch) return null;
 
   const numbers = numMatch[1].split(',').map(n => n.trim().padStart(2, '0'));
-  return numbers.length === 3 ? { numbers, date, closed: false } : null;
+  if (numbers.length !== 3) return null;
+  log(`anguilla "${drawConfig.time}" source date: ${date}`);
+  return { numbers, date, closed: false };
 }
 
 module.exports = { scrapeDraw };
