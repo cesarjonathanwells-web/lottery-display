@@ -319,9 +319,11 @@
   .draw-numbers input:focus { border-color: var(--primary); outline: none; }
   .draw-numbers .sep { font-weight: 900; color: var(--muted); font-size: 16px; }
 
-  .draw-date {
-    font-size: 10px; color: var(--muted); flex-shrink: 0;
+  .draw-date-input {
+    width: 130px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: inherit; font-size: 12px; color: var(--text); flex-shrink: 0;
   }
+  .draw-date-input:focus { border-color: var(--primary); outline: none; }
 
   .draw-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .draw-actions .btn-sm {
@@ -580,7 +582,7 @@
   }
 
   function getLotteryStatus(lottery) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA');
     const todayDraws = lottery.draws.filter(d => d.date === today && d.numbers && d.numbers.length > 0);
     const pending = lottery.draws.filter(d => d.status === 'pending');
     if (todayDraws.length > 0) return { type: 'has-results', label: todayDraws.length };
@@ -627,7 +629,7 @@
   // ── Summary ──
   function renderSummary() {
     const lotteries = getAllLotteries();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA');
     let totalDraws = 0, todayResults = 0, pendingCount = 0, closedCount = 0;
 
     for (const l of lotteries) {
@@ -840,10 +842,8 @@
       statusHtml = `<button class="draw-status ${draw.status}" onclick="clearStatus('${id}', ${index})" title="Click to clear status">${label} &#10005;</button>`;
     }
 
-    let dateHtml = '';
-    if (draw.date) {
-      dateHtml = `<span class="draw-date">${draw.date}</span>`;
-    }
+    const dateVal = draw.date || new Date().toLocaleDateString('en-CA');
+    const dateHtml = `<input type="date" class="draw-date-input" value="${dateVal}" id="date_${id}_${index}">`;
 
     return `<div class="draw-row">
       <div class="draw-time">
@@ -896,9 +896,10 @@
       }
     });
 
+    const date = document.getElementById(`date_${lotteryId}_${drawIndex}`).value;
     const res = await fetch(`/api/results/${lotteryId}/${drawIndex}`, {
       method: 'PUT', headers: authHeaders(),
-      body: JSON.stringify({ time, numbers })
+      body: JSON.stringify({ time, numbers, date })
     });
 
     if (res.ok) { showToast('Draw saved'); await loadData(); }
@@ -920,9 +921,14 @@
     const lottery = findLottery(lotteryId);
     if (!lottery) return;
     const numbers = emptyNumbers(lottery.format);
+    const today = new Date().toLocaleDateString('en-CA');
+    const time = prompt('Draw time (e.g. 12:00 PM):', '12:00 PM');
+    if (!time) return;
+    const date = prompt('Draw date (YYYY-MM-DD):', today);
+    if (!date) return;
     const res = await fetch(`/api/results/${lotteryId}/draws`, {
       method: 'POST', headers: authHeaders(),
-      body: JSON.stringify({ time: '12:00 PM', numbers })
+      body: JSON.stringify({ time, numbers, date })
     });
     if (res.ok) { showToast('Draw added'); await loadData(); scrollToLottery(lotteryId); }
     else if (res.status === 401) { showToast('Session expired', true); logout(); }
