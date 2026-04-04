@@ -134,6 +134,17 @@
 
   .format-hint { font-size: 11px; color: var(--muted); margin-left: 4px; }
 
+  /* ── Draw status badge (inline) ── */
+  .draw-status {
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: .5px; cursor: pointer; border: none;
+    flex-shrink: 0;
+  }
+  .draw-status.closed { background: #eceff1; color: #455a64; }
+  .draw-status.pending { background: #fff3e0; color: #e65100; }
+  .draw-status.no_result { background: #fce4ec; color: #c62828; }
+  .draw-status:hover { opacity: .7; }
+
   /* ── Scraper Panel ── */
   .scraper-panel {
     background: var(--card-bg); border-radius: 10px; margin-bottom: 20px;
@@ -449,19 +460,36 @@
     </div>`;
   }
 
+  /** Get default empty numbers template for a lottery format. */
+  function emptyNumbers(format) {
+    if (format === 'pick3') return ['00', '00', '00'];
+    if (format === 'pick34') return ['0', '0', '0', '-', '0', '0', '0', '0'];
+    if (format === 'florida') return ['0', '0', '-', '0', '0', '0', '-', '0', '0', '0', '0'];
+    return ['00', '00', '00'];
+  }
+
   function renderDrawRow(lottery, draw, index) {
     const id = lottery.id;
-    const numInputs = draw.numbers.map((n, ni) => {
-      if (n === '-') {
-        return `<span class="sep">-</span>`;
-      }
-      return `<input type="text" value="${n}" id="num_${id}_${index}_${ni}" style="width:${n.length > 1 ? 52 : 36}px">`;
+    // Always show editable inputs — use empty template if no numbers
+    const nums = (draw.numbers && draw.numbers.length > 0) ? draw.numbers : emptyNumbers(lottery.format);
+
+    const numInputs = nums.map((n, ni) => {
+      if (n === '-') return `<span class="sep">-</span>`;
+      return `<input type="text" value="${n}" id="num_${id}_${index}_${ni}" style="width:${n.length > 1 ? 48 : 36}px">`;
     }).join('');
+
+    // Status badge — clickable to clear
+    let statusHtml = '';
+    if (draw.status) {
+      const label = draw.status === 'closed' ? 'Closed' : draw.status === 'pending' ? 'Pending' : 'No Result';
+      statusHtml = `<button class="draw-status ${draw.status}" onclick="clearStatus('${id}', ${index})" title="Click to clear status">${label} ✕</button>`;
+    }
 
     return `<div class="draw-row">
       <div class="draw-time">
         <input type="text" value="${draw.time}" id="time_${id}_${index}">
       </div>
+      ${statusHtml}
       <div class="draw-numbers">${numInputs}</div>
       <div class="draw-actions">
         <button class="btn-sm btn-save" onclick="saveDraw('${id}', ${index})">Save</button>
@@ -481,15 +509,32 @@
     return null;
   }
 
+  async function clearStatus(lotteryId, drawIndex) {
+    const res = await fetch(`/api/results/${lotteryId}/${drawIndex}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ clearStatus: true })
+    });
+    if (res.ok) {
+      showToast('Status cleared');
+      await loadData();
+    } else if (res.status === 401) {
+      showToast('Session expired', true); logout();
+    } else {
+      showToast('Failed to clear status', true);
+    }
+  }
+
   async function saveDraw(lotteryId, drawIndex) {
     const lottery = findLottery(lotteryId);
     if (!lottery) return;
 
     const draw = lottery.draws[drawIndex];
+    const template = (draw.numbers && draw.numbers.length > 0) ? draw.numbers : emptyNumbers(lottery.format);
     const time = document.getElementById(`time_${lotteryId}_${drawIndex}`).value.trim();
 
     const numbers = [];
-    draw.numbers.forEach((n, ni) => {
+    template.forEach((n, ni) => {
       if (n === '-') {
         numbers.push('-');
       } else {

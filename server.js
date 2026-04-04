@@ -57,7 +57,7 @@ app.post('/api/login', (req, res) => {
 // Update a specific draw's numbers
 app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
   const { lotteryId, drawIndex } = req.params;
-  const { numbers, time } = req.body;
+  const { numbers, time, clearStatus } = req.body;
 
   if (numbers && (!Array.isArray(numbers) || !numbers.every(n => typeof n === 'string'))) {
     return res.status(400).json({ error: 'numbers must be an array of strings' });
@@ -72,8 +72,17 @@ app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
   for (const col of data.columns) {
     for (const lottery of col.lotteries) {
       if (lottery.id === lotteryId && lottery.draws[idx]) {
-        if (numbers) lottery.draws[idx].numbers = numbers;
+        if (numbers) {
+          lottery.draws[idx].numbers = numbers;
+          // Admin override clears any scraper status
+          delete lottery.draws[idx].status;
+          delete lottery.draws[idx].corrected;
+        }
         if (time) lottery.draws[idx].time = time;
+        if (clearStatus) {
+          delete lottery.draws[idx].status;
+          delete lottery.draws[idx].corrected;
+        }
         lottery.draws[idx].date = new Date().toISOString().slice(0, 10);
         writeData(data);
         return res.json({ ok: true });
