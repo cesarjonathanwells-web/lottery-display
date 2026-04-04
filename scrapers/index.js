@@ -358,6 +358,19 @@ function init() {
     Object.keys(verifyPollers).forEach(stopVerification);
     Object.keys(scraperStatus).forEach(k => delete scraperStatus[k]);
     corrections.length = 0;
+
+    // Clear statuses in data file so the new day starts fresh
+    const data = readData();
+    for (const col of data.columns) {
+      for (const lottery of col.lotteries) {
+        for (const draw of lottery.draws) {
+          delete draw.status;
+          delete draw.corrected;
+        }
+      }
+    }
+    writeData(data);
+    log('Cleared all draw statuses for new day');
   }, { timezone: TIMEZONE });
 
   log(`Scheduler ready: ${config.scrapers.length} lotteries`);
