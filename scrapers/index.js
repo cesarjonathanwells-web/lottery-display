@@ -4,6 +4,7 @@ const path = require('path');
 const conectate = require('./conectate');
 const ocean = require('./ocean');
 const lotterypost = require('./lotterypost');
+const anguilla = require('./anguilla');
 
 const DATA_FILE = path.join(__dirname, '..', 'data', 'results.json');
 const CONFIG_FILE = path.join(__dirname, '..', 'data', 'scraper-config.json');
@@ -147,6 +148,17 @@ async function scrapeLotterypost(scraperConfig, drawConfig) {
   return lotterypost.formatNumbers(pick3, pick4, format);
 }
 
+async function scrapeAnguilla(scraperConfig, drawConfig) {
+  const result = await anguilla.scrapeDraw(drawConfig.time);
+  if (!result) return null;
+  if (result.closed) return { closed: true };
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (result.date !== today) return null; // not today's result
+
+  return result.numbers;
+}
+
 /**
  * Run a single scrape attempt for a lottery draw.
  * Returns the formatted numbers if new results found, null otherwise.
@@ -156,6 +168,7 @@ async function runScrape(scraperConfig, drawConfig) {
 
   try {
     if (source === 'manual') return null;
+    if (source === 'anguilla') return await scrapeAnguilla(scraperConfig, drawConfig);
     if (source === 'conectate') return await scrapeConectate(scraperConfig, drawConfig);
     if (source === 'ocean') return await scrapeOcean(scraperConfig, drawConfig);
     if (source === 'lotterypost') return await scrapeLotterypost(scraperConfig, drawConfig);
