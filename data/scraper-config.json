@@ -8,63 +8,133 @@
       "lotteryId": "anguilla",
       "source": "anguilla",
       "draws": [
-        { "time": "8:00 AM" },  { "time": "9:00 AM" },  { "time": "10:00 AM" },
-        { "time": "11:00 AM" }, { "time": "12:00 PM" }, { "time": "1:00 PM" },
-        { "time": "2:00 PM" },  { "time": "3:00 PM" },  { "time": "4:00 PM" },
-        { "time": "5:00 PM" },  { "time": "6:00 PM" },  { "time": "7:00 PM" },
-        { "time": "8:00 PM" },  { "time": "9:00 PM" },  { "time": "10:00 PM" }
+        {
+          "time": "8:00 AM"
+        },
+        {
+          "time": "9:00 AM"
+        },
+        {
+          "time": "10:00 AM"
+        },
+        {
+          "time": "11:00 AM"
+        },
+        {
+          "time": "12:00 PM"
+        },
+        {
+          "time": "1:00 PM"
+        },
+        {
+          "time": "2:00 PM"
+        },
+        {
+          "time": "3:00 PM"
+        },
+        {
+          "time": "4:00 PM"
+        },
+        {
+          "time": "5:00 PM"
+        },
+        {
+          "time": "6:00 PM"
+        },
+        {
+          "time": "7:00 PM"
+        },
+        {
+          "time": "8:00 PM"
+        },
+        {
+          "time": "9:00 PM"
+        },
+        {
+          "time": "10:00 PM"
+        }
       ]
     },
     {
       "lotteryId": "nacional",
       "source": "conectate",
       "draws": [
-        { "time": "2:30 PM", "gameName": "Gana Más" },
-        { "time": "9:00 PM", "gameName": "Lotería Nacional" }
+        {
+          "time": "2:30 PM",
+          "gameName": "Gana M\u00e1s"
+        },
+        {
+          "time": "9:00 PM",
+          "gameName": "Loter\u00eda Nacional"
+        }
       ]
     },
     {
       "lotteryId": "laprimera",
       "source": "conectate",
       "draws": [
-        { "time": "12:00 PM", "gameName": "La Primera Día" },
-        { "time": "7:00 PM", "gameName": "Primera Noche" }
+        {
+          "time": "12:00 PM",
+          "gameName": "La Primera D\u00eda"
+        },
+        {
+          "time": "7:00 PM",
+          "gameName": "Primera Noche"
+        }
       ]
     },
     {
       "lotteryId": "lasuerte",
       "source": "conectate",
       "draws": [
-        { "time": "12:30 PM", "gameName": "La Suerte MD" },
-        { "time": "6:00 PM", "gameName": "La Suerte 6PM" }
+        {
+          "time": "12:30 PM",
+          "gameName": "La Suerte MD"
+        },
+        {
+          "time": "6:00 PM",
+          "gameName": "La Suerte 6PM"
+        }
       ]
     },
     {
       "lotteryId": "lotedom",
       "source": "conectate",
       "draws": [
-        { "time": "12:00 PM", "gameName": "LoteDom" }
+        {
+          "time": "12:00 PM",
+          "gameName": "LoteDom"
+        }
       ]
     },
     {
       "lotteryId": "real",
       "source": "conectate",
       "draws": [
-        { "time": "1:00 PM", "gameName": "Quiniela Real" }
+        {
+          "time": "1:00 PM",
+          "gameName": "Quiniela Real"
+        }
       ]
     },
     {
       "lotteryId": "loteka",
       "source": "conectate",
       "draws": [
-        { "time": "8:00 PM", "gameName": "Quiniela Loteka" }
+        {
+          "time": "8:00 PM",
+          "gameName": "Quiniela Loteka"
+        }
       ]
     },
     {
       "lotteryId": "quinielapale",
       "source": "conectate",
       "draws": [
-        { "time": "9:00 PM", "gameName": "Quiniela Leidsa" }
+        {
+          "time": "9:00 PM",
+          "gameName": "Quiniela Leidsa"
+        }
       ]
     },
     {
@@ -72,19 +142,43 @@
       "source": "conectate",
       "format": "pick34",
       "draws": [
-        { "time": "12:30 PM", "gameName": "King Lottery 12:30" },
-        { "time": "7:30 PM", "gameName": "King Lottery 7:30" }
-      ]
+        {
+          "time": "12:30 PM",
+          "pick3Name": "Pick 3 D\u00eda",
+          "pick4Name": "Pick 4 D\u00eda"
+        },
+        {
+          "time": "7:30 PM",
+          "pick3Name": "Pick 3 Noche",
+          "pick4Name": "Pick 4 Noche"
+        }
+      ],
+      "pageUrl": "/loterias/king-lottery/"
     },
     {
       "lotteryId": "ocean",
       "source": "ocean",
       "draws": [
-        { "time": "10:00 AM", "drawLabel": "MAÑANA" },
-        { "time": "1:00 PM", "drawLabel": "MEDIO DIA" },
-        { "time": "3:00 PM", "drawLabel": "MEDIA TARDE" },
-        { "time": "6:00 PM", "drawLabel": "TARDE" },
-        { "time": "9:00 PM", "drawLabel": "NOCHE" }
+        {
+          "time": "10:00 AM",
+          "drawLabel": "MA\u00d1ANA"
+        },
+        {
+          "time": "1:00 PM",
+          "drawLabel": "MEDIO DIA"
+        },
+        {
+          "time": "3:00 PM",
+          "drawLabel": "MEDIA TARDE"
+        },
+        {
+          "time": "6:00 PM",
+          "drawLabel": "TARDE"
+        },
+        {
+          "time": "9:00 PM",
+          "drawLabel": "NOCHE"
+        }
       ]
     },
     {
@@ -92,8 +186,14 @@
       "source": "lotterycoast",
       "state": "ny",
       "draws": [
-        { "time": "2:30 PM", "session": "midday" },
-        { "time": "10:30 PM", "session": "evening" }
+        {
+          "time": "2:30 PM",
+          "session": "midday"
+        },
+        {
+          "time": "10:30 PM",
+          "session": "evening"
+        }
       ]
     },
     {
@@ -102,8 +202,14 @@
       "state": "fl",
       "format": "florida",
       "draws": [
-        { "time": "1:30 PM", "session": "midday" },
-        { "time": "10:00 PM", "session": "evening" }
+        {
+          "time": "1:30 PM",
+          "session": "midday"
+        },
+        {
+          "time": "10:00 PM",
+          "session": "evening"
+        }
       ]
     },
     {
@@ -111,9 +217,18 @@
       "source": "lotterycoast",
       "state": "ga",
       "draws": [
-        { "time": "12:30 PM", "session": "midday" },
-        { "time": "7:00 PM", "session": "evening" },
-        { "time": "11:40 PM", "session": "night" }
+        {
+          "time": "12:30 PM",
+          "session": "midday"
+        },
+        {
+          "time": "7:00 PM",
+          "session": "evening"
+        },
+        {
+          "time": "11:40 PM",
+          "session": "night"
+        }
       ]
     },
     {
@@ -121,8 +236,14 @@
       "source": "lotterycoast",
       "state": "nj",
       "draws": [
-        { "time": "1:00 PM", "session": "midday" },
-        { "time": "11:00 PM", "session": "evening" }
+        {
+          "time": "1:00 PM",
+          "session": "midday"
+        },
+        {
+          "time": "11:00 PM",
+          "session": "evening"
+        }
       ]
     },
     {
@@ -130,8 +251,14 @@
       "source": "lotterycoast",
       "state": "ct",
       "draws": [
-        { "time": "2:00 PM", "session": "day" },
-        { "time": "10:30 PM", "session": "night" }
+        {
+          "time": "2:00 PM",
+          "session": "day"
+        },
+        {
+          "time": "10:30 PM",
+          "session": "night"
+        }
       ]
     }
   ]
