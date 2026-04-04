@@ -311,17 +311,14 @@
     '#283593'  // Saturday - Indigo
   ];
 
-  // Muted gray for old results with no date
-  const OLD_RESULT_COLOR = '#90a4ae';
-
   function getBallColor(draw) {
     if (draw.date) {
       const [y, m, d] = draw.date.split('-').map(Number);
       const dayOfWeek = new Date(y, m - 1, d).getDay();
       return DAY_COLORS[dayOfWeek];
     }
-    // No date stored — these are old/previous results, show muted
-    return OLD_RESULT_COLOR;
+    // No date stored — use today's color so results always look active
+    return DAY_COLORS[new Date().getDay()];
   }
 
   // ── Render helpers ──
@@ -358,15 +355,15 @@
   }
 
   function getCardStatus(lottery) {
-    const hasClosed = lottery.draws.some(d => d.status === 'closed');
-    const allClosed = lottery.draws.every(d => d.status === 'closed');
+    const hasNumbers = lottery.draws.some(d => d.numbers && d.numbers.length > 0);
+    const allClosed = lottery.draws.length > 0 && lottery.draws.every(d => d.status === 'closed');
     const hasPending = lottery.draws.some(d => d.status === 'pending' || isDrawPastDue(d));
     const allNoResult = lottery.draws.every(d => d.status === 'no_result');
 
-    if (allClosed) return 'closed';
+    // Only show "no draw" if ALL draws are closed AND none have numbers
+    if (allClosed && !hasNumbers) return 'closed';
     if (hasPending) return 'pending';
-    if (allNoResult) return 'no_result';
-    if (hasClosed) return 'closed';
+    if (allNoResult && !hasNumbers) return 'no_result';
     return null;
   }
 
