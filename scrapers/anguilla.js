@@ -18,7 +18,7 @@ async function scrapeDraw(drawTime) {
   try {
     const html = await fetchPage(`${BASE_URL}${slug}`);
     const $ = cheerio.load(html);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
     const hasSinSorteo = html.includes('Sin sorteo');
 
     const scriptEl = $('script[type="application/ld+json"]').first();

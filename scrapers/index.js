@@ -531,6 +531,38 @@ function init() {
   }, { timezone: config.timezone || 'America/New_York' });
 
   log(`Scheduler initialized with ${config.scrapers.length} lottery configs`);
+
+  // Startup catch-up: scrape all lotteries immediately to grab any
+  // results that were missed due to server restart/redeploy
+  setTimeout(async () => {
+    log('Startup catch-up: scraping all lotteries...');
+    try {
+      const result = await scrapeAll();
+      const updated = result.results.filter(r =>
+        r.results && r.results.some(d => d.updated)
+      ).length;
+      log(`Startup catch-up finished in ${result.elapsed} — ${updated} lotteries updated`);
+    } catch (err) {
+      log(`Startup catch-up error: ${err.message}`);
+    }
+  }, 5000);
+
+  // Periodic re-scrape every 10 minutes to catch results between cron triggers
+  // and to recover from transient source failures
+  cron.schedule('*/10 * * * *', async () => {
+    log('Periodic re-scrape triggered');
+    try {
+      const result = await scrapeAll();
+      const updated = result.results.filter(r =>
+        r.results && r.results.some(d => d.updated)
+      ).length;
+      if (updated > 0) {
+        log(`Periodic re-scrape: ${updated} lotteries updated in ${result.elapsed}`);
+      }
+    } catch (err) {
+      log(`Periodic re-scrape error: ${err.message}`);
+    }
+  }, { timezone: config.timezone || 'America/New_York' });
 }
 
 /**
