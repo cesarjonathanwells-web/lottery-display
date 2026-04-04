@@ -4,7 +4,7 @@ const path = require('path');
 const conectate = require('./conectate');
 const ocean = require('./ocean');
 const anguilla = require('./anguilla');
-const lotterycorner = require('./lotterycorner');
+const lotterycoast = require('./lotterycoast');
 
 const DATA_FILE = path.join(__dirname, '..', 'data', 'results.json');
 const CONFIG_FILE = path.join(__dirname, '..', 'data', 'scraper-config.json');
@@ -130,8 +130,8 @@ async function scrapeOcean(scraperConfig, drawConfig) {
   return ocean.formatNumbers(draw.numbers);
 }
 
-async function scrapeLotterycorner(scraperConfig, drawConfig) {
-  const result = await lotterycorner.scrapeDraw(
+async function scrapeLotterycoast(scraperConfig, drawConfig) {
+  const result = await lotterycoast.scrapeDraw(
     scraperConfig.state,
     drawConfig.session,
     scraperConfig.displayFormat || 'pick34'
@@ -163,7 +163,7 @@ async function runScrape(scraperConfig, drawConfig) {
     if (source === 'anguilla') return await scrapeAnguilla(scraperConfig, drawConfig);
     if (source === 'conectate') return await scrapeConectate(scraperConfig, drawConfig);
     if (source === 'ocean') return await scrapeOcean(scraperConfig, drawConfig);
-    if (source === 'lotterycorner') return await scrapeLotterycorner(scraperConfig, drawConfig);
+    if (source === 'lotterycoast') return await scrapeLotterycoast(scraperConfig, drawConfig);
     log(`Unknown source: ${source}`);
     return null;
   } catch (err) {

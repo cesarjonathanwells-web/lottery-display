@@ -88,7 +88,7 @@
     },
     {
       "lotteryId": "newyork",
-      "source": "lotterycorner",
+      "source": "lotterycoast",
       "state": "ny",
       "draws": [
         { "time": "2:30 PM", "session": "midday" },
@@ -97,7 +97,7 @@
     },
     {
       "lotteryId": "florida",
-      "source": "lotterycorner",
+      "source": "lotterycoast",
       "state": "fl",
       "displayFormat": "florida",
       "draws": [
@@ -107,7 +107,7 @@
     },
     {
       "lotteryId": "georgia",
-      "source": "lotterycorner",
+      "source": "lotterycoast",
       "state": "ga",
       "draws": [
         { "time": "12:30 PM", "session": "midday" },
@@ -117,7 +117,7 @@
     },
     {
       "lotteryId": "newjersey",
-      "source": "lotterycorner",
+      "source": "lotterycoast",
       "state": "nj",
       "draws": [
         { "time": "1:00 PM", "session": "midday" },
@@ -126,7 +126,7 @@
     },
     {
       "lotteryId": "connecticut",
-      "source": "lotterycorner",
+      "source": "lotterycoast",
       "state": "ct",
       "draws": [
         { "time": "2:00 PM", "session": "day" },
