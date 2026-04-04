@@ -302,15 +302,17 @@
     '#283593'  // Saturday - Indigo
   ];
 
+  // Muted gray for old results with no date
+  const OLD_RESULT_COLOR = '#90a4ae';
+
   function getBallColor(draw) {
     if (draw.date) {
-      // Parse YYYY-MM-DD date and get day of week
       const [y, m, d] = draw.date.split('-').map(Number);
       const dayOfWeek = new Date(y, m - 1, d).getDay();
       return DAY_COLORS[dayOfWeek];
     }
-    // No date stored — use today's color
-    return DAY_COLORS[new Date().getDay()];
+    // No date stored — these are old/previous results, show muted
+    return OLD_RESULT_COLOR;
   }
 
   // ── Render helpers ──
