@@ -107,6 +107,10 @@ async function scrapeConectate(scraperConfig, drawConfig) {
   const game = conectate.getGame(drawConfig.gameName, scrapedData);
 
   if (!game) return null;
+
+  // If lottery is closed today, return special signal
+  if (game.closed) return { closed: true };
+
   if (!conectate.isToday(game.date)) return null;
 
   // Determine format based on lottery type in results.json
@@ -296,8 +300,19 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
       return;
     }
 
-    const numbers = await runScrape(scraperConfig, drawConfig);
-    if (!numbers) return;
+    const result = await runScrape(scraperConfig, drawConfig);
+    if (!result) return;
+
+    // Check if lottery is closed today
+    if (result.closed) {
+      log(`Lottery closed today: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+      updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'closed');
+      stopPolling(key);
+      scraperStatus[key].status = 'closed';
+      return;
+    }
+
+    const numbers = result;
 
     // Validate before publishing
     const validation = validateNumbers(numbers, scraperConfig.lotteryId);
@@ -414,10 +429,14 @@ async function manualScrape(lotteryId) {
   const results = [];
   for (let i = 0; i < scraperConfig.draws.length; i++) {
     const drawConfig = scraperConfig.draws[i];
-    const numbers = await runScrape(scraperConfig, drawConfig);
-    if (numbers && numbers.length > 0) {
-      updateDraw(lotteryId, drawConfig.time, numbers, null);
-      results.push({ time: drawConfig.time, numbers, updated: true });
+    const result = await runScrape(scraperConfig, drawConfig);
+
+    if (result && result.closed) {
+      updateDraw(lotteryId, drawConfig.time, null, 'closed');
+      results.push({ time: drawConfig.time, numbers: null, closed: true, updated: true });
+    } else if (result && Array.isArray(result) && result.length > 0) {
+      updateDraw(lotteryId, drawConfig.time, result, null);
+      results.push({ time: drawConfig.time, numbers: result, updated: true });
     } else {
       results.push({ time: drawConfig.time, numbers: null, updated: false });
     }

@@ -192,6 +192,11 @@
     letter-spacing: 1px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 20px;
   }
+  .status-closed {
+    background: linear-gradient(90deg, #455a64, #607d8b);
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 4px 16px; border-radius: 20px;
+  }
   .status-corrected {
     font-size: 10px; font-weight: 700; color: #e65100;
     margin-left: 6px; letter-spacing: .5px;
@@ -336,6 +341,9 @@
     if (draw.status === 'no_result') {
       return '<span class="status-noresult">No Result</span>';
     }
+    if (draw.status === 'closed') {
+      return '<span class="status-closed">No Draw Today</span>';
+    }
     return null;
   }
 
@@ -384,7 +392,7 @@
         for (const draw of lottery.draws) {
           if (draw.status === 'pending') {
             items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>PENDING</b></span>`);
-          } else if (draw.status === 'no_result') {
+          } else if (draw.status === 'no_result' || draw.status === 'closed') {
             continue;
           } else {
             const nums = draw.numbers.join(draw.numbers.includes('-') ? '' : '-');

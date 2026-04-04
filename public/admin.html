@@ -319,6 +319,7 @@
           statusCls = latestJob.corrected ? 'timeout' : 'completed';
           statusText = latestJob.corrected ? 'Corrected' : 'Done';
         }
+        else if (latestJob.status === 'closed') { statusCls = 'idle'; statusText = 'Closed'; }
         else if (latestJob.status === 'timeout') { statusCls = 'timeout'; statusText = 'Timeout'; }
       }
 

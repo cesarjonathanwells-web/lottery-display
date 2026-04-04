@@ -27,6 +27,10 @@ async function scrape() {
     const dateEl = $block.find('.session-date');
     const date = dateEl.text().trim();
 
+    // Check for "No Sorteo Hoy" badge
+    const sessionBadge = $block.find('.session-badge').first().text().trim();
+    const closed = sessionBadge === 'No Sorteo Hoy';
+
     // Get numbers from span.score elements (direct children of .game-scores)
     const numbers = [];
     $block.find('.game-scores span.score').each((_, s) => {
@@ -34,8 +38,8 @@ async function scrape() {
       if (num) numbers.push(num);
     });
 
-    if (numbers.length > 0) {
-      results[gameName] = { numbers, date };
+    if (numbers.length > 0 || closed) {
+      results[gameName] = { numbers, date, closed };
     }
   });
 
