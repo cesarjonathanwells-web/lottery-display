@@ -288,8 +288,10 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
     const result = await runScrape(scraperConfig, drawConfig);
 
     if (result && result.closed) {
-      updateDraw(lotteryId, drawConfig.time, null, 'closed');
-      results.push({ time: drawConfig.time, closed: true, updated: true });
+      // Don't set closed during catch-up/manual scrapes — the source page
+      // may show "no draw" for yesterday while today's draw hasn't happened yet.
+      // Only cron-triggered polling (at actual draw time) should mark closed.
+      results.push({ time: drawConfig.time, closed: true, updated: false });
     } else if (result && result.numbers && result.numbers.length > 0) {
       const dateOk = !result.date || isToday(result.date) || (acceptRecent && isRecent(result.date));
 
