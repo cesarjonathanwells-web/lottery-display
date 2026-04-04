@@ -70,6 +70,7 @@
     {
       "lotteryId": "kinglottery",
       "source": "conectate",
+      "format": "pick34",
       "draws": [
         { "time": "12:30 PM", "gameName": "King Lottery 12:30" },
         { "time": "7:30 PM", "gameName": "King Lottery 7:30" }
@@ -99,7 +100,7 @@
       "lotteryId": "florida",
       "source": "lotterycoast",
       "state": "fl",
-      "displayFormat": "florida",
+      "format": "florida",
       "draws": [
         { "time": "1:30 PM", "session": "midday" },
         { "time": "10:00 PM", "session": "evening" }

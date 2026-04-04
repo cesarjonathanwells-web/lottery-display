@@ -83,7 +83,7 @@ app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
           delete lottery.draws[idx].status;
           delete lottery.draws[idx].corrected;
         }
-        lottery.draws[idx].date = new Date().toISOString().slice(0, 10);
+        lottery.draws[idx].date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
         writeData(data);
         return res.json({ ok: true });
       }
@@ -101,7 +101,7 @@ app.post('/api/results/:lotteryId/draws', authMiddleware, (req, res) => {
   for (const col of data.columns) {
     for (const lottery of col.lotteries) {
       if (lottery.id === lotteryId) {
-        lottery.draws.push({ time, numbers, date: new Date().toISOString().slice(0, 10) });
+        lottery.draws.push({ time, numbers, date: new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) });
         writeData(data);
         return res.json({ ok: true });
       }
@@ -148,7 +148,7 @@ app.get('/api/scraper-status', authMiddleware, (req, res) => {
 
 app.post('/api/scraper/run-all', authMiddleware, async (req, res) => {
   try {
-    const result = await scraper.scrapeAll();
+    const result = await scraper.scrapeAll({ acceptRecent: true });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -158,7 +158,7 @@ app.post('/api/scraper/run-all', authMiddleware, async (req, res) => {
 app.post('/api/scraper/run/:lotteryId', authMiddleware, async (req, res) => {
   const { lotteryId } = req.params;
   try {
-    const result = await scraper.manualScrape(lotteryId);
+    const result = await scraper.manualScrape(lotteryId, { acceptRecent: true });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

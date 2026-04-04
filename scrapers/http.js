@@ -6,14 +6,16 @@ const HEADERS = {
   'Accept-Language': 'en-US,en;q=0.9,es;q=0.8'
 };
 
-/**
- * Fetch a page with browser-like headers and a 15s timeout.
- * @param {string} url
- * @returns {Promise<string>} HTML string
- */
-async function fetchPage(url) {
-  const { data } = await axios.get(url, { headers: HEADERS, timeout: 15000 });
-  return data;
+async function fetchPage(url, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const { data } = await axios.get(url, { headers: HEADERS, timeout: 15000 });
+      return data;
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+    }
+  }
 }
 
 module.exports = { fetchPage };
