@@ -357,7 +357,7 @@
   function getCardStatus(lottery) {
     const hasNumbers = lottery.draws.some(d => d.numbers && d.numbers.length > 0);
     const allClosed = lottery.draws.length > 0 && lottery.draws.every(d => d.status === 'closed');
-    const hasPending = lottery.draws.some(d => d.status === 'pending' || isDrawPastDue(d));
+    const hasPending = lottery.draws.some(d => d.status === 'pending');
     const allNoResult = lottery.draws.every(d => d.status === 'no_result');
 
     // Only show "no draw" if ALL draws are closed AND none have numbers
@@ -374,53 +374,19 @@
     return '';
   }
 
-  /**
-   * Parse a draw time like "2:30 PM" into minutes since midnight.
-   * Returns null for unparseable times (e.g. "Toca 3").
-   */
-  function parseTimeToMinutes(timeStr) {
-    const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (!m) return null;
-    let h = parseInt(m[1], 10);
-    const min = parseInt(m[2], 10);
-    const period = m[3].toUpperCase();
-    if (period === 'PM' && h !== 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
-    return h * 60 + min;
-  }
-
-  /**
-   * Check if a draw should show as "pending" based on the clock.
-   * True when: draw time has passed today AND draw has no today's numbers AND not closed.
-   */
+  /** Pending state is managed by the backend scraper — trust it. */
   function isDrawPastDue(draw) {
-    if (draw.status === 'closed') return false;
-    if (draw.status === 'pending') return true; // already marked by scraper
-
-    const drawMin = parseTimeToMinutes(draw.time);
-    if (drawMin === null) return false;
-
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    if (nowMin < drawMin) return false; // draw hasn't happened yet
-
-    // Draw time has passed — check if we have today's numbers
-    const today = now.toISOString().slice(0, 10);
-    if (draw.date === today && !draw.status) return false; // already updated today
-    return true;
+    return draw.status === 'pending';
   }
 
   function renderRowBalls(lottery, draw) {
     const hasNumbers = draw.numbers && draw.numbers.length > 0;
-    const pastDue = isDrawPastDue(draw);
 
-    // Closed: show previous numbers, no extra indicator
     if (draw.status === 'closed') {
       return hasNumbers ? renderBalls(lottery, draw) : '';
     }
 
-    // Pending (from scraper or from clock): show indicator + old numbers
-    if (draw.status === 'pending' || pastDue) {
+    if (draw.status === 'pending') {
       const badge = '<span class="row-status row-status-pending">Pending</span>';
       return hasNumbers ? badge + renderBalls(lottery, draw) : '<span class="status-pending">Pending</span>';
     }
