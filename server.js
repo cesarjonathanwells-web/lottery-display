@@ -57,7 +57,7 @@ app.post('/api/login', (req, res) => {
 // Update a specific draw's numbers
 app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
   const { lotteryId, drawIndex } = req.params;
-  const { numbers, time, clearStatus } = req.body;
+  const { numbers, time, date, clearStatus } = req.body;
 
   if (numbers && (!Array.isArray(numbers) || !numbers.every(n => typeof n === 'string'))) {
     return res.status(400).json({ error: 'numbers must be an array of strings' });
@@ -83,7 +83,7 @@ app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
           delete lottery.draws[idx].status;
           delete lottery.draws[idx].corrected;
         }
-        lottery.draws[idx].date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        lottery.draws[idx].date = date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
         writeData(data);
         return res.json({ ok: true });
       }
