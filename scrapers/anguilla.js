@@ -16,30 +16,21 @@ async function scrapeDraw(scraperConfig, drawConfig) {
 
   const html = await fetchPage(`${BASE_URL}${slug}`);
   const $ = cheerio.load(html);
-  const today = getToday();
-  const hasSinSorteo = html.includes('Sin sorteo');
 
   const scriptEl = $('script[type="application/ld+json"]').first();
-  if (!scriptEl.length) {
-    return hasSinSorteo ? { numbers: null, date: today, closed: true } : null;
-  }
+  if (!scriptEl.length) return null;
 
   let jsonLd;
-  try { jsonLd = JSON.parse(scriptEl.html()); } catch {
-    return hasSinSorteo ? { numbers: null, date: today, closed: true } : null;
-  }
+  try { jsonLd = JSON.parse(scriptEl.html()); } catch { return null; }
 
   const events = (jsonLd['@graph'] || []).filter(e => e['@type'] === 'Event');
-  if (events.length === 0) {
-    return hasSinSorteo ? { numbers: null, date: today, closed: true } : null;
-  }
+  if (events.length === 0) return null;
 
-  const latest = events[0];
+  // Find today's event first, fall back to most recent
+  const today = getToday();
+  const todayEvent = events.find(e => e.startDate && e.startDate.slice(0, 10) === today);
+  const latest = todayEvent || events[0];
   const date = latest.startDate.slice(0, 10);
-
-  if (date !== today && hasSinSorteo) {
-    return { numbers: null, date: today, closed: true };
-  }
 
   const numMatch = (latest.description || '').match(/Números ganadores:\s*(.+)\./);
   if (!numMatch) return null;
