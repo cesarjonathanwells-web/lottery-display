@@ -58,6 +58,14 @@ app.post('/api/login', (req, res) => {
 app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {
   const { lotteryId, drawIndex } = req.params;
   const { numbers, time } = req.body;
+
+  if (numbers && (!Array.isArray(numbers) || !numbers.every(n => typeof n === 'string'))) {
+    return res.status(400).json({ error: 'numbers must be an array of strings' });
+  }
+  if (time && typeof time !== 'string') {
+    return res.status(400).json({ error: 'time must be a string' });
+  }
+
   const data = readData();
   const idx = parseInt(drawIndex, 10);
 

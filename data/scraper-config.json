@@ -8,92 +8,82 @@
       "lotteryId": "anguilla",
       "source": "anguilla",
       "draws": [
-        { "time": "8:00 AM" },
-        { "time": "9:00 AM" },
-        { "time": "10:00 AM" },
-        { "time": "11:00 AM" },
-        { "time": "12:00 PM" },
-        { "time": "1:00 PM" },
-        { "time": "2:00 PM" },
-        { "time": "3:00 PM" },
-        { "time": "4:00 PM" },
-        { "time": "5:00 PM" },
-        { "time": "6:00 PM" },
-        { "time": "7:00 PM" },
-        { "time": "8:00 PM" },
-        { "time": "9:00 PM" },
-        { "time": "10:00 PM" }
+        { "time": "8:00 AM" },  { "time": "9:00 AM" },  { "time": "10:00 AM" },
+        { "time": "11:00 AM" }, { "time": "12:00 PM" }, { "time": "1:00 PM" },
+        { "time": "2:00 PM" },  { "time": "3:00 PM" },  { "time": "4:00 PM" },
+        { "time": "5:00 PM" },  { "time": "6:00 PM" },  { "time": "7:00 PM" },
+        { "time": "8:00 PM" },  { "time": "9:00 PM" },  { "time": "10:00 PM" }
       ]
     },
     {
       "lotteryId": "nacional",
       "source": "conectate",
       "draws": [
-        { "time": "2:30 PM", "gameName": "Gana Más", "startPolling": "14:25" },
-        { "time": "9:00 PM", "gameName": "Lotería Nacional", "startPolling": "20:55" }
+        { "time": "2:30 PM", "gameName": "Gana Más" },
+        { "time": "9:00 PM", "gameName": "Lotería Nacional" }
       ]
     },
     {
       "lotteryId": "laprimera",
       "source": "conectate",
       "draws": [
-        { "time": "12:00 PM", "gameName": "La Primera Día", "startPolling": "11:55" },
-        { "time": "7:00 PM", "gameName": "Primera Noche", "startPolling": "18:55" }
+        { "time": "12:00 PM", "gameName": "La Primera Día" },
+        { "time": "7:00 PM", "gameName": "Primera Noche" }
       ]
     },
     {
       "lotteryId": "lasuerte",
       "source": "conectate",
       "draws": [
-        { "time": "12:30 PM", "gameName": "La Suerte MD", "startPolling": "12:25" },
-        { "time": "6:00 PM", "gameName": "La Suerte 6PM", "startPolling": "17:55" }
+        { "time": "12:30 PM", "gameName": "La Suerte MD" },
+        { "time": "6:00 PM", "gameName": "La Suerte 6PM" }
       ]
     },
     {
       "lotteryId": "lotedom",
       "source": "conectate",
       "draws": [
-        { "time": "12:00 PM", "gameName": "LoteDom", "startPolling": "11:55" }
+        { "time": "12:00 PM", "gameName": "LoteDom" }
       ]
     },
     {
       "lotteryId": "real",
       "source": "conectate",
       "draws": [
-        { "time": "1:00 PM", "gameName": "Quiniela Real", "startPolling": "12:55" }
+        { "time": "1:00 PM", "gameName": "Quiniela Real" }
       ]
     },
     {
       "lotteryId": "loteka",
       "source": "conectate",
       "draws": [
-        { "time": "8:00 PM", "gameName": "Quiniela Loteka", "startPolling": "19:55" }
+        { "time": "8:00 PM", "gameName": "Quiniela Loteka" }
       ]
     },
     {
       "lotteryId": "quinielapale",
       "source": "conectate",
       "draws": [
-        { "time": "9:00 PM", "gameName": "Quiniela Leidsa", "startPolling": "20:55" }
+        { "time": "9:00 PM", "gameName": "Quiniela Leidsa" }
       ]
     },
     {
       "lotteryId": "kinglottery",
       "source": "conectate",
       "draws": [
-        { "time": "12:30 PM", "gameName": "King Lottery 12:30", "startPolling": "12:25" },
-        { "time": "7:30 PM", "gameName": "King Lottery 7:30", "startPolling": "19:25" }
+        { "time": "12:30 PM", "gameName": "King Lottery 12:30" },
+        { "time": "7:30 PM", "gameName": "King Lottery 7:30" }
       ]
     },
     {
       "lotteryId": "ocean",
       "source": "ocean",
       "draws": [
-        { "time": "10:00 AM", "drawLabel": "MAÑANA", "startPolling": "09:55" },
-        { "time": "1:00 PM", "drawLabel": "MEDIO DIA", "startPolling": "12:55" },
-        { "time": "3:00 PM", "drawLabel": "MEDIA TARDE", "startPolling": "14:55" },
-        { "time": "6:00 PM", "drawLabel": "TARDE", "startPolling": "17:55" },
-        { "time": "9:00 PM", "drawLabel": "NOCHE", "startPolling": "20:55" }
+        { "time": "10:00 AM", "drawLabel": "MAÑANA" },
+        { "time": "1:00 PM", "drawLabel": "MEDIO DIA" },
+        { "time": "3:00 PM", "drawLabel": "MEDIA TARDE" },
+        { "time": "6:00 PM", "drawLabel": "TARDE" },
+        { "time": "9:00 PM", "drawLabel": "NOCHE" }
       ]
     },
     {

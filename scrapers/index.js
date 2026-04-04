@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const conectate = require('./conectate');
 const ocean = require('./ocean');
-const lotterypost = require('./lotterypost');
 const anguilla = require('./anguilla');
 const lotterycorner = require('./lotterycorner');
 
@@ -131,24 +130,6 @@ async function scrapeOcean(scraperConfig, drawConfig) {
   return ocean.formatNumbers(draw.numbers);
 }
 
-async function scrapeLotterypost(scraperConfig, drawConfig) {
-  const scrapedData = await lotterypost.scrape(scraperConfig.state);
-  const { pick3, pick4 } = lotterypost.getDrawNumbers(
-    scraperConfig.state,
-    drawConfig.gameNames,
-    scrapedData
-  );
-
-  if (!pick3 && !pick4) return null;
-
-  // Determine format from the lottery in results.json
-  const data = readData();
-  const found = findLottery(data, scraperConfig.lotteryId);
-  const format = found ? found.lottery.format : 'pick34';
-
-  return lotterypost.formatNumbers(pick3, pick4, format);
-}
-
 async function scrapeLotterycorner(scraperConfig, drawConfig) {
   const result = await lotterycorner.scrapeDraw(
     scraperConfig.state,
@@ -183,7 +164,6 @@ async function runScrape(scraperConfig, drawConfig) {
     if (source === 'conectate') return await scrapeConectate(scraperConfig, drawConfig);
     if (source === 'ocean') return await scrapeOcean(scraperConfig, drawConfig);
     if (source === 'lotterycorner') return await scrapeLotterycorner(scraperConfig, drawConfig);
-    if (source === 'lotterypost') return await scrapeLotterypost(scraperConfig, drawConfig);
     log(`Unknown source: ${source}`);
     return null;
   } catch (err) {
