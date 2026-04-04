@@ -18,8 +18,21 @@ const LABEL_TO_TIME = {
   'NOCHE': '9:00 PM'
 };
 
+// Reverse map
+const TIME_TO_LABEL = {};
+for (const [k, v] of Object.entries(LABEL_TO_TIME)) TIME_TO_LABEL[v] = k;
+
 /**
  * Scrapes goldoceanlottery.net and returns draw results.
+ *
+ * The page has:
+ *  1. A hero card at top showing the latest draw (e.g. "JUEGO: NUMEROS - NOCHE")
+ *  2. A "NUMEROS" section with MAÑANA / MEDIO DIA / MEDIA TARDE / TARDE / NOCHE rows
+ *  3. A "4 CIFRAS" section with duplicate labels — we must SKIP this
+ *
+ * We only take the FIRST occurrence of each label (the NUMEROS section),
+ * and also parse the hero for the latest draw which may not be in the list yet.
+ *
  * Returns: { "MAÑANA": { numbers: ["57", "14", "91"], available: true }, ... }
  */
 async function scrape() {
@@ -27,37 +40,59 @@ async function scrape() {
   const $ = cheerio.load(html);
   const results = {};
 
-  // Find all elements that contain draw labels
   const labelTexts = ['MAÑANA', 'MEDIO DIA', 'MEDIA TARDE', 'TARDE', 'NOCHE'];
+  const seen = new Set();
 
-  // The page has draw sections with labels and ball elements
-  // Structure: parent container has label + .go-result-row with .go-ball elements
+  // 1. Parse the hero card for the latest draw
+  const heroCard = $('.go-card-hero');
+  if (heroCard.length) {
+    const heroText = heroCard.text();
+    const heroMatch = heroText.match(/NUMEROS\s*-\s*(MAÑANA|MEDIO DIA|MEDIA TARDE|TARDE|NOCHE)/i);
+    if (heroMatch) {
+      const heroLabel = heroMatch[1].toUpperCase();
+      const heroBalls = [];
+      heroCard.find('.go-ball').each((_, b) => heroBalls.push($(b).text().trim()));
+      if (heroBalls.length >= 3) {
+        const available = !heroBalls.every(b => b === '--' || b === '—');
+        results[heroLabel] = { numbers: heroBalls.slice(0, 3), available };
+        seen.add(heroLabel);
+      }
+    }
+  }
+
+  // 2. Parse the NUMEROS section — take only FIRST occurrence of each label
+  //    (before 4 CIFRAS section starts)
+  let in4Cifras = false;
+
   $('*').each((_, el) => {
     const text = $(el).text().trim();
-    if (labelTexts.includes(text) && $(el).children().length === 0) {
-      // This is a label element - find the associated balls
+
+    // Detect when we enter the 4 CIFRAS section — stop collecting
+    if (text === '4 CIFRAS' && $(el).children().length === 0) {
+      in4Cifras = true;
+      return;
+    }
+
+    if (in4Cifras) return;
+
+    if (labelTexts.includes(text) && $(el).children().length === 0 && !seen.has(text)) {
+      seen.add(text);
+
       const parent = $(el).closest('[class*="go-draw"]').length
         ? $(el).closest('[class*="go-draw"]')
         : $(el).parent();
 
       const balls = [];
-      parent.find('.go-ball').each((_, b) => {
-        balls.push($(b).text().trim());
-      });
+      parent.find('.go-ball').each((_, b) => balls.push($(b).text().trim()));
 
-      // If no balls in immediate parent, look in next sibling row
       if (balls.length === 0) {
         const nextRow = $(el).parent().next();
-        nextRow.find('.go-ball').each((_, b) => {
-          balls.push($(b).text().trim());
-        });
+        nextRow.find('.go-ball').each((_, b) => balls.push($(b).text().trim()));
       }
 
-      if (balls.length > 0) {
+      if (balls.length >= 3) {
         const available = !balls.every(b => b === '--' || b === '—');
-        // Take first 3 as the pick-3 numbers (4th is bonus/gold ball)
-        const numbers = balls.slice(0, 3);
-        results[text] = { numbers, available };
+        results[text] = { numbers: balls.slice(0, 3), available };
       }
     }
   });
@@ -67,9 +102,6 @@ async function scrape() {
 
 /**
  * Get result for a specific draw label.
- * @param {string} drawLabel - "MAÑANA", "MEDIO DIA", etc.
- * @param {object} scrapedData - Result from scrape()
- * @returns {{ numbers: string[], available: boolean } | null}
  */
 function getDraw(drawLabel, scrapedData) {
   return scrapedData[drawLabel] || null;
@@ -77,7 +109,6 @@ function getDraw(drawLabel, scrapedData) {
 
 /**
  * Format Ocean numbers into our pick3 format.
- * Ocean shows 2-digit numbers already.
  */
 function formatNumbers(numbers) {
   return numbers.map(n => n.padStart(2, '0'));
