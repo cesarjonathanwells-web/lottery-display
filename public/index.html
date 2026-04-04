@@ -312,9 +312,10 @@
   ];
 
   function getBallColor(draw) {
-    const today = new Date().toLocaleDateString('en-CA');
-    if (draw.date && draw.date !== today) {
-      return '#78909c'; // muted gray for old results
+    if (draw.date) {
+      const [y, m, d] = draw.date.split('-').map(Number);
+      const dayOfWeek = new Date(y, m - 1, d).getDay();
+      return DAY_COLORS[dayOfWeek];
     }
     return DAY_COLORS[new Date().getDay()];
   }
