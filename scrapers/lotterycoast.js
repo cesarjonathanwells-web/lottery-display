@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { hasTimePassed, isToday } = require('./utils');
+const { hasTimePassed, isToday, log } = require('./utils');
 
 const BASE_URL = 'https://lotterycoast.com/lottery-results';
 
@@ -120,6 +120,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   const numbers = combineNumbers(gameMap, data, format);
   if (!numbers) return null;
 
+  log(`${scraperConfig.lotteryId} "${drawConfig.time}" source date: ${date}`);
   return { numbers, date, closed: false };
 }
 
