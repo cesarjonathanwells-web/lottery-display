@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { getToday } = require('./utils');
+const { getToday, log } = require('./utils');
 
 const PAGE_URL = 'https://goldoceanlottery.net';
 const DRAW_ORDER = ['MAÑANA', 'MEDIO DIA', 'MEDIA TARDE', 'TARDE', 'NOCHE'];
@@ -91,6 +91,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   if (!draw || !draw.available) return null;
 
   const numbers = draw.numbers.map(n => n.padStart(2, '0'));
+  log(`ocean "${drawConfig.drawLabel}" source date: ${date}`);
   return { numbers, date, closed: false };
 }
 
