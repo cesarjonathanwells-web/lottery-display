@@ -4,15 +4,15 @@ const { getToday } = require('./utils');
 
 const PAGE_URL = 'https://www.conectate.com.do/loterias/';
 
-let _cache = null;
-let _cacheTime = 0;
+const _caches = {};
 const CACHE_TTL = 30000;
 
-async function fetchAll() {
+async function fetchGames(url) {
+  url = url || PAGE_URL;
   const now = Date.now();
-  if (_cache && (now - _cacheTime) < CACHE_TTL) return _cache;
+  if (_caches[url] && (now - _caches[url].time) < CACHE_TTL) return _caches[url].data;
 
-  const html = await fetchPage(PAGE_URL);
+  const html = await fetchPage(url);
   const $ = cheerio.load(html);
   const results = {};
 
@@ -48,8 +48,7 @@ async function fetchAll() {
     }
   });
 
-  _cache = results;
-  _cacheTime = Date.now();
+  _caches[url] = { data: results, time: Date.now() };
   return results;
 }
 
@@ -93,7 +92,34 @@ function formatNumbers(numbers, format) {
 }
 
 async function scrapeDraw(scraperConfig, drawConfig) {
-  const allGames = await fetchAll();
+  const url = scraperConfig.pageUrl
+    ? 'https://www.conectate.com.do' + scraperConfig.pageUrl
+    : PAGE_URL;
+  const allGames = await fetchGames(url);
+
+  // Combined pick3+pick4 mode (e.g. King Lottery)
+  if (drawConfig.pick3Name && drawConfig.pick4Name) {
+    const p3game = findGame(drawConfig.pick3Name, allGames);
+    const p4game = findGame(drawConfig.pick4Name, allGames);
+
+    if (!p3game && !p4game) return null;
+    if ((p3game && p3game.closed) || (p4game && p4game.closed)) {
+      return { numbers: null, date: (p3game || p4game).date || getToday(), closed: true };
+    }
+
+    const p3 = p3game && p3game.numbers.length > 0 ? p3game.numbers : null;
+    const p4 = p4game && p4game.numbers.length > 0 ? p4game.numbers : null;
+    if (!p3 && !p4) return null;
+
+    const numbers = [];
+    if (p3) numbers.push(...p3);
+    if (p4) { numbers.push('-'); numbers.push(...p4); }
+
+    const date = (p3game && p3game.date) || (p4game && p4game.date) || null;
+    return { numbers, date, closed: false };
+  }
+
+  // Single game mode
   const game = findGame(drawConfig.gameName, allGames);
 
   if (!game) return null;
