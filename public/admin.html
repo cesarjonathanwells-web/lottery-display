@@ -14,8 +14,10 @@
     --primary-light: #2c5090;
     --danger: #c62828;
     --success: #2e7d32;
+    --warning: #e65100;
     --text: #1a2a40;
     --muted: #6b7a8d;
+    --sidebar-w: 240px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,21 +28,6 @@
     color: var(--text);
     min-height: 100vh;
   }
-
-  /* ── Header ── */
-  .header {
-    background: linear-gradient(180deg, #1a3560, #1e3d6e);
-    padding: 16px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,.2);
-  }
-  .header h1 { color: #fff; font-size: 20px; letter-spacing: 1px; }
-  .header-actions { display: flex; gap: 10px; align-items: center; }
-  .header .btn { padding: 8px 18px; border: none; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .btn-danger { background: var(--danger); color: #fff; }
-  .btn-danger:hover { opacity: .9; }
-  .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,.4); color: #fff; }
-  .btn-outline:hover { background: rgba(255,255,255,.1); }
 
   /* ── Login ── */
   .login-wrap {
@@ -66,27 +53,246 @@
   .login-box .btn-primary:hover { background: var(--primary-light); }
   .login-error { color: var(--danger); font-size: 13px; margin-bottom: 12px; display: none; }
 
-  /* ── Dashboard ── */
+  /* ── Dashboard Shell ── */
   .dashboard { display: none; }
-  .dashboard.active { display: block; }
+  .dashboard.active { display: flex; min-height: 100vh; }
 
-  .content { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  /* ── Top Bar ── */
+  .topbar {
+    position: fixed; top: 0; left: var(--sidebar-w); right: 0; z-index: 90;
+    height: 56px; background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-date { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .topbar-clock { font-size: 15px; font-weight: 700; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .topbar .btn {
+    padding: 7px 16px; border: none; border-radius: 6px; font-family: inherit;
+    font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-primary-sm { background: var(--primary); color: #fff; }
+  .btn-primary-sm:hover { background: var(--primary-light); }
+  .btn-success-sm { background: var(--success); color: #fff; }
+  .btn-success-sm:hover { opacity: .9; }
+  .btn-danger-sm { background: var(--danger); color: #fff; }
+  .btn-danger-sm:hover { opacity: .9; }
+  .btn-outline-sm { background: #fff; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline-sm:hover { background: var(--bg); }
+  .btn-ghost { background: none; border: none; color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* ── Auto-refresh toggle ── */
+  .toggle-wrap { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .toggle {
+    width: 36px; height: 20px; border-radius: 10px; background: #ccc;
+    cursor: pointer; position: relative; transition: background .2s;
+  }
+  .toggle.on { background: var(--success); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+    transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: linear-gradient(180deg, #1a3560 0%, #162c50 100%);
+    overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-brand {
+    padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.1);
+    flex-shrink: 0;
+  }
+  .sidebar-brand h1 {
+    font-size: 16px; color: #fff; letter-spacing: .5px;
+  }
+  .sidebar-brand p {
+    font-size: 10px; color: rgba(255,255,255,.45); letter-spacing: 2px;
+    text-transform: uppercase; margin-top: 2px;
+  }
+
+  .sidebar-search {
+    padding: 12px 14px; flex-shrink: 0;
+  }
+  .sidebar-search input {
+    width: 100%; padding: 8px 12px; border: 1px solid rgba(255,255,255,.15);
+    border-radius: 6px; background: rgba(255,255,255,.08); color: #fff;
+    font-family: inherit; font-size: 12px; outline: none;
+  }
+  .sidebar-search input::placeholder { color: rgba(255,255,255,.35); }
+  .sidebar-search input:focus { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.12); }
+
+  .sidebar-section {
+    padding: 6px 14px 4px; font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding-bottom: 12px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 18px; cursor: pointer; transition: background .15s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); }
+  .nav-item.active { background: rgba(255,255,255,.1); border-left-color: #5bc8ff; }
+  .nav-item.hidden { display: none; }
+
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .nav-name {
+    font-size: 13px; font-weight: 600; color: rgba(255,255,255,.8);
+    flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nav-badge {
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .nav-badge.has-results { background: rgba(46,125,50,.3); color: #81c784; }
+  .nav-badge.pending { background: rgba(230,81,0,.3); color: #ffb74d; }
+  .nav-badge.empty { background: rgba(255,255,255,.1); color: rgba(255,255,255,.35); }
+
+  .sidebar-footer {
+    flex-shrink: 0; padding: 12px 18px;
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .sidebar-footer a {
+    display: block; padding: 8px 0; font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,.5); text-decoration: none; text-align: center;
+  }
+  .sidebar-footer a:hover { color: #fff; }
+
+  /* ── Main Content ── */
+  .main {
+    flex: 1; margin-left: var(--sidebar-w); margin-top: 56px;
+    padding: 20px 24px; min-height: calc(100vh - 56px);
+  }
+
+  /* ── Summary Cards ── */
+  .summary-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 20px;
+  }
+  .summary-card {
+    background: var(--card-bg); border-radius: 10px; padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04); border-left: 4px solid;
+  }
+  .summary-card .sc-label {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .summary-card .sc-value {
+    font-size: 28px; font-weight: 900; margin-top: 4px;
+  }
+
+  /* ── Section Header ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; gap: 12px;
+  }
+  .section-header h2 { font-size: 16px; letter-spacing: .5px; }
+  .section-toggle {
+    font-size: 12px; color: var(--primary); font-weight: 600;
+    cursor: pointer; background: none; border: none; font-family: inherit;
+  }
+  .section-toggle:hover { text-decoration: underline; }
+
+  /* ── Scraper Panel ── */
+  .scraper-panel {
+    background: var(--card-bg); border-radius: 10px; margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04); overflow: hidden;
+  }
+  .scraper-panel.collapsed .scraper-body { display: none; }
+  .scraper-panel-header {
+    background: linear-gradient(90deg, #1a3560, #2c5090);
+    padding: 12px 18px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+  }
+  .scraper-panel-header h3 { font-size: 14px; letter-spacing: .5px; }
+  .scraper-panel-actions { display: flex; gap: 8px; align-items: center; }
+  .scraper-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px; padding: 14px;
+  }
+  .scraper-item {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .scraper-item-info { flex: 1; }
+  .scraper-item-name { font-size: 13px; font-weight: 700; }
+  .scraper-item-source { font-size: 11px; color: var(--muted); }
+  .scraper-item-status {
+    font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+    display: inline-block;
+  }
+  .scraper-item-status.polling { background: #fff3e0; color: #e65100; }
+  .scraper-item-status.completed { background: #e8f5e9; color: #2e7d32; }
+  .scraper-item-status.corrected { background: #fff3e0; color: #e65100; }
+  .scraper-item-status.timeout { background: #fce4ec; color: #c62828; }
+  .scraper-item-status.idle { background: #f5f5f5; color: #9e9e9e; }
+  .btn-scrape {
+    padding: 4px 10px; border: 1px solid var(--primary); border-radius: 6px;
+    background: #fff; color: var(--primary); font-family: inherit;
+    font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .btn-scrape:hover { background: var(--primary); color: #fff; }
+  .btn-scrape:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-scrape-light { border-color: #fff; color: #fff; background: transparent; }
+  .btn-scrape-light:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* ── Corrections ── */
+  .corrections-list { padding: 10px 14px; }
+  .correction-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border: 1px solid #ffcc80; border-radius: 8px; background: #fff8e1;
+    margin-bottom: 6px; font-size: 13px; flex-wrap: wrap;
+  }
+  .correction-item .corr-label {
+    font-weight: 700; color: #e65100; font-size: 11px; text-transform: uppercase; flex-shrink: 0;
+  }
+  .correction-item .corr-old { color: var(--danger); text-decoration: line-through; }
+  .correction-item .corr-new { color: var(--success); font-weight: 700; }
+  .correction-item .corr-time { color: var(--muted); font-size: 11px; margin-left: auto; flex-shrink: 0; }
+  .no-corrections { padding: 10px 14px; color: var(--muted); font-size: 13px; }
 
   /* ── Lottery Card ── */
   .lottery-card {
     background: var(--card-bg); border-radius: 10px; margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04); overflow: hidden;
+    scroll-margin-top: 76px;
   }
   .lottery-header {
-    padding: 12px 18px; color: #fff; display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
   }
   .lottery-header h3 { font-size: 16px; letter-spacing: .5px; text-transform: uppercase; }
+  .lottery-header-actions { display: flex; gap: 6px; align-items: center; }
   .lottery-header .btn-add {
     background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
     color: #fff; padding: 5px 14px; border-radius: 6px; font-family: inherit;
     font-size: 12px; font-weight: 600; cursor: pointer;
   }
   .lottery-header .btn-add:hover { background: rgba(255,255,255,.3); }
+  .lottery-header .btn-clear-lottery {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    color: rgba(255,255,255,.8); padding: 5px 12px; border-radius: 6px;
+    font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .lottery-header .btn-clear-lottery:hover { background: rgba(255,0,0,.3); color: #fff; }
+
+  .lottery-draw-count {
+    font-size: 11px; font-weight: 600; color: rgba(255,255,255,.6);
+    margin-left: 8px;
+  }
 
   .draw-row {
     display: flex; align-items: center; padding: 10px 18px; gap: 12px;
@@ -113,6 +319,10 @@
   .draw-numbers input:focus { border-color: var(--primary); outline: none; }
   .draw-numbers .sep { font-weight: 900; color: var(--muted); font-size: 16px; }
 
+  .draw-date {
+    font-size: 10px; color: var(--muted); flex-shrink: 0;
+  }
+
   .draw-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .draw-actions .btn-sm {
     padding: 5px 12px; border: none; border-radius: 6px; font-family: inherit;
@@ -123,18 +333,6 @@
   .btn-delete { background: #eee; color: var(--danger); }
   .btn-delete:hover { background: #fce4ec; }
 
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
-    background: var(--success); color: #fff; border-radius: 8px;
-    font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.2);
-    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999;
-  }
-  .toast.show { opacity: 1; }
-  .toast.error { background: var(--danger); }
-
-  .format-hint { font-size: 11px; color: var(--muted); margin-left: 4px; }
-
-  /* ── Draw status badge (inline) ── */
   .draw-status {
     font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
     text-transform: uppercase; letter-spacing: .5px; cursor: pointer; border: none;
@@ -145,61 +343,52 @@
   .draw-status.no_result { background: #fce4ec; color: #c62828; }
   .draw-status:hover { opacity: .7; }
 
-  /* ── Scraper Panel ── */
-  .scraper-panel {
-    background: var(--card-bg); border-radius: 10px; margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden;
-  }
-  .scraper-panel-header {
-    background: linear-gradient(90deg, #1a3560, #2c5090);
-    padding: 12px 18px; color: #fff; display: flex; align-items: center; justify-content: space-between;
-  }
-  .scraper-panel-header h3 { font-size: 16px; letter-spacing: .5px; }
-  .scraper-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 10px; padding: 14px;
-  }
-  .scraper-item {
-    border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  }
-  .scraper-item-info { flex: 1; }
-  .scraper-item-name { font-size: 13px; font-weight: 700; }
-  .scraper-item-source { font-size: 11px; color: var(--muted); }
-  .scraper-item-status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
-  .scraper-item-status.polling { background: #fff3e0; color: #e65100; }
-  .scraper-item-status.completed { background: #e8f5e9; color: #2e7d32; }
-  .scraper-item-status.corrected { background: #fff3e0; color: #e65100; }
-  .scraper-item-status.timeout { background: #fce4ec; color: #c62828; }
-  .scraper-item-status.idle { background: #f5f5f5; color: #9e9e9e; }
-  .btn-scrape {
-    padding: 4px 10px; border: 1px solid var(--primary); border-radius: 6px;
-    background: #fff; color: var(--primary); font-family: inherit;
-    font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  }
-  .btn-scrape:hover { background: var(--primary); color: #fff; }
-  .btn-scrape:disabled { opacity: .5; cursor: not-allowed; }
+  .format-hint { font-size: 11px; color: rgba(255,255,255,.6); margin-left: 4px; font-weight: 400; }
 
-  /* ── Corrections Log ── */
-  .corrections-list { padding: 10px 14px; }
-  .correction-item {
-    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-    border: 1px solid #ffcc80; border-radius: 8px; background: #fff8e1;
-    margin-bottom: 6px; font-size: 13px;
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
+    background: var(--success); color: #fff; border-radius: 8px;
+    font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999;
   }
-  .correction-item .corr-label {
-    font-weight: 700; color: #e65100; font-size: 11px; text-transform: uppercase;
-    flex-shrink: 0;
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--danger); }
+
+  /* ── Empty state ── */
+  .empty-draws {
+    padding: 20px 18px; text-align: center; color: var(--muted); font-size: 13px;
   }
-  .correction-item .corr-old { color: var(--danger); text-decoration: line-through; }
-  .correction-item .corr-new { color: var(--success); font-weight: 700; }
-  .correction-item .corr-time { color: var(--muted); font-size: 11px; margin-left: auto; flex-shrink: 0; }
-  .no-corrections { padding: 10px 14px; color: var(--muted); font-size: 13px; }
+
+  /* ── Mobile ── */
+  .sidebar-toggle {
+    display: none; background: none; border: none; color: var(--text);
+    font-size: 20px; cursor: pointer; padding: 4px;
+  }
+
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { transform: translateX(-260px); width: 260px; transition: transform .25s; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: block; }
+    .topbar { left: 0; }
+    .main { margin-left: 0; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 99;
+    }
+    .sidebar-overlay.open { display: block; }
+  }
+  @media (max-width: 540px) {
+    .summary-row { grid-template-columns: 1fr; }
+    .draw-row { flex-wrap: wrap; }
+    .topbar-right .btn span { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div class="login-wrap" id="loginView">
   <div class="login-box">
     <h2>Admin Login</h2>
@@ -210,18 +399,59 @@
   </div>
 </div>
 
-<!-- ══ DASHBOARD ══ -->
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- DASHBOARD -->
 <div class="dashboard" id="dashboardView">
-  <div class="header">
-    <h1>Lottery Admin</h1>
-    <div class="header-actions">
-      <button class="btn btn-outline" id="scrapeAllBtn" onclick="scrapeAllLotteries(this)" style="background:#2e7d32;border-color:#2e7d32;color:#fff">Scrape All</button>
-      <button class="btn btn-danger" onclick="clearAll()">Clear All Results</button>
-      <button class="btn btn-outline" onclick="logout()">Logout</button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <h1>Lucky Draw</h1>
+      <p>Admin Panel</p>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="lotterySearch" placeholder="Search lotteries..." oninput="filterNav()">
+    </div>
+    <div class="sidebar-section">Lotteries</div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank">View Public Board</a>
+      <a href="#" onclick="logout(); return false;">Logout</a>
+    </div>
+  </aside>
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+      <span class="topbar-date" id="topDate"></span>
+      <span class="topbar-clock" id="topClock"></span>
+    </div>
+    <div class="topbar-right">
+      <div class="toggle-wrap">
+        <span>Auto-refresh</span>
+        <div class="toggle on" id="autoRefreshToggle" onclick="toggleAutoRefresh()"></div>
+      </div>
+      <button class="btn btn-success-sm" id="scrapeAllBtn" onclick="scrapeAllLotteries(this)">Scrape All</button>
+      <button class="btn btn-outline-sm" onclick="refreshAll()">Refresh</button>
+      <button class="btn btn-danger-sm" onclick="clearAll()"><span>Clear All</span></button>
     </div>
   </div>
-  <div class="content">
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Summary -->
+    <div class="summary-row" id="summaryRow"></div>
+
+    <!-- Scraper Panel -->
     <div id="scraperPanel"></div>
+
+    <!-- Lottery Cards -->
+    <div class="section-header">
+      <h2>Lottery Results</h2>
+    </div>
     <div id="lotteryList"></div>
   </div>
 </div>
@@ -231,9 +461,27 @@
 <script>
   let TOKEN = sessionStorage.getItem('adminToken') || '';
   let DATA = null;
+  let SCRAPER_STATUS = {};
+  let autoRefreshOn = true;
+  let autoRefreshTimer = null;
+
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── Clock ──
+  function tickClock() {
+    const n = new Date();
+    const h = n.getHours(), m = n.getMinutes(), s = n.getSeconds();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    document.getElementById('topClock').textContent =
+      `${h12}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ampm}`;
+    document.getElementById('topDate').textContent =
+      `${DAYS[n.getDay()]}, ${MONTHS[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+  }
+  tickClock(); setInterval(tickClock, 1000);
 
   // ── Auth ──
-
   async function doLogin() {
     const pw = document.getElementById('passwordInput').value;
     const res = await fetch('/api/login', {
@@ -260,32 +508,53 @@
     sessionStorage.removeItem('adminToken');
     document.getElementById('loginView').style.display = 'flex';
     document.getElementById('dashboardView').classList.remove('active');
+    stopAutoRefresh();
   }
 
   async function showDashboard() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('dashboardView').classList.add('active');
-    await loadScraperStatus();
-    await loadData();
+    await Promise.all([loadScraperStatus(), loadData()]);
+    startAutoRefresh();
   }
 
   // ── Data ──
-
   async function loadData() {
-    const res = await fetch('/api/results');
-    DATA = await res.json();
-    renderAll();
+    try {
+      const res = await fetch('/api/results');
+      DATA = await res.json();
+      renderAll();
+    } catch (e) { console.error('Failed to load results:', e); }
   }
 
   function authHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${TOKEN}`
-    };
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` };
+  }
+
+  async function refreshAll() {
+    await Promise.all([loadScraperStatus(), loadData()]);
+    showToast('Refreshed');
+  }
+
+  // ── Auto Refresh ──
+  function startAutoRefresh() {
+    stopAutoRefresh();
+    if (autoRefreshOn) {
+      autoRefreshTimer = setInterval(async () => {
+        await Promise.all([loadScraperStatus(), loadData()]);
+      }, 30000);
+    }
+  }
+  function stopAutoRefresh() {
+    if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+  }
+  function toggleAutoRefresh() {
+    autoRefreshOn = !autoRefreshOn;
+    document.getElementById('autoRefreshToggle').classList.toggle('on', autoRefreshOn);
+    startAutoRefresh();
   }
 
   // ── Toast ──
-
   function showToast(msg, isError) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -293,10 +562,104 @@
     setTimeout(() => t.classList.remove('show'), 2500);
   }
 
-  // ── Scraper ──
+  // ── Sidebar ──
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+  }
 
-  let SCRAPER_STATUS = {};
+  function getAllLotteries() {
+    if (!DATA) return [];
+    const all = [];
+    for (const col of DATA.columns) {
+      for (const lottery of col.lotteries) {
+        all.push(lottery);
+      }
+    }
+    return all;
+  }
 
+  function getLotteryStatus(lottery) {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayDraws = lottery.draws.filter(d => d.date === today && d.numbers && d.numbers.length > 0);
+    const pending = lottery.draws.filter(d => d.status === 'pending');
+    if (todayDraws.length > 0) return { type: 'has-results', label: todayDraws.length };
+    if (pending.length > 0) return { type: 'pending', label: pending.length };
+    return { type: 'empty', label: '0' };
+  }
+
+  function renderSidebar() {
+    const nav = document.getElementById('sidebarNav');
+    const lotteries = getAllLotteries();
+
+    nav.innerHTML = lotteries.map(l => {
+      const st = getLotteryStatus(l);
+      return `<div class="nav-item" data-id="${l.id}" data-name="${l.name.toLowerCase()}" onclick="scrollToLottery('${l.id}')">
+        <span class="nav-dot" style="background:${l.color}"></span>
+        <span class="nav-name">${l.name}</span>
+        <span class="nav-badge ${st.type}">${st.label}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function scrollToLottery(id) {
+    const el = document.getElementById('card-' + id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Highlight in sidebar
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const navItem = document.querySelector(`.nav-item[data-id="${id}"]`);
+      if (navItem) navItem.classList.add('active');
+    }
+    // Close sidebar on mobile
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+
+  function filterNav() {
+    const q = document.getElementById('lotterySearch').value.toLowerCase().trim();
+    document.querySelectorAll('.nav-item').forEach(el => {
+      const name = el.dataset.name;
+      el.classList.toggle('hidden', q && !name.includes(q));
+    });
+  }
+
+  // ── Summary ──
+  function renderSummary() {
+    const lotteries = getAllLotteries();
+    const today = new Date().toISOString().slice(0, 10);
+    let totalDraws = 0, todayResults = 0, pendingCount = 0, closedCount = 0;
+
+    for (const l of lotteries) {
+      totalDraws += l.draws.length;
+      for (const d of l.draws) {
+        if (d.date === today && d.numbers && d.numbers.length > 0 && !d.status) todayResults++;
+        if (d.status === 'pending') pendingCount++;
+        if (d.status === 'closed') closedCount++;
+      }
+    }
+
+    document.getElementById('summaryRow').innerHTML = `
+      <div class="summary-card" style="border-left-color: var(--primary)">
+        <div class="sc-label">Lotteries</div>
+        <div class="sc-value" style="color: var(--primary)">${lotteries.length}</div>
+      </div>
+      <div class="summary-card" style="border-left-color: var(--success)">
+        <div class="sc-label">Today's Results</div>
+        <div class="sc-value" style="color: var(--success)">${todayResults}</div>
+      </div>
+      <div class="summary-card" style="border-left-color: var(--warning)">
+        <div class="sc-label">Pending</div>
+        <div class="sc-value" style="color: var(--warning)">${pendingCount}</div>
+      </div>
+      <div class="summary-card" style="border-left-color: var(--muted)">
+        <div class="sc-label">Total Draws</div>
+        <div class="sc-value" style="color: var(--muted)">${totalDraws}</div>
+      </div>
+    `;
+  }
+
+  // ── Scraper Panel ──
   async function loadScraperStatus() {
     try {
       const res = await fetch('/api/scraper-status', { headers: authHeaders() });
@@ -308,22 +671,12 @@
     const panel = document.getElementById('scraperPanel');
     if (!DATA) { panel.innerHTML = ''; return; }
 
-    const lotteries = [];
-    for (const col of DATA.columns) {
-      for (const lottery of col.lotteries) {
-        if (lottery.id === 'anguilla') continue; // manual only
-        lotteries.push(lottery);
-      }
-    }
-
+    const lotteries = getAllLotteries();
     const jobs = SCRAPER_STATUS.jobs || {};
-    const activeKeys = SCRAPER_STATUS.activePollers || [];
 
     const items = lotteries.map(l => {
-      // Find status for this lottery
       const jobKeys = Object.keys(jobs).filter(k => k.startsWith(l.id + ':'));
-      let statusCls = 'idle';
-      let statusText = 'Idle';
+      let statusCls = 'idle', statusText = 'Idle';
       if (jobKeys.length > 0) {
         const latestJob = jobs[jobKeys[jobKeys.length - 1]];
         if (latestJob.status === 'polling') { statusCls = 'polling'; statusText = `Polling (${latestJob.attempts})`; }
@@ -341,11 +694,11 @@
           <div class="scraper-item-name">${l.name}</div>
           <span class="scraper-item-status ${statusCls}">${statusText}</span>
         </div>
-        <button class="btn-scrape" onclick="triggerScrape('${l.id}', this)">Scrape Now</button>
+        <button class="btn-scrape" onclick="triggerScrape('${l.id}', this)">Scrape</button>
       </div>`;
     }).join('');
 
-    // Corrections log
+    // Corrections
     const corrs = SCRAPER_STATUS.corrections || [];
     let correctionsHtml = '';
     if (corrs.length > 0) {
@@ -365,32 +718,32 @@
       correctionsHtml = '<div class="no-corrections">No corrections today</div>';
     }
 
-    panel.innerHTML = `<div class="scraper-panel">
-      <div class="scraper-panel-header">
+    const collapsed = panel.querySelector('.scraper-panel.collapsed') ? ' collapsed' : '';
+    panel.innerHTML = `<div class="scraper-panel${collapsed}">
+      <div class="scraper-panel-header" onclick="this.parentElement.classList.toggle('collapsed')">
         <h3>Scraper Status</h3>
-        <button class="btn-scrape" onclick="refreshScraperStatus()" style="border-color:#fff;color:#fff">Refresh</button>
+        <div class="scraper-panel-actions">
+          <button class="btn-scrape btn-scrape-light" onclick="event.stopPropagation(); refreshScraperStatus()">Refresh</button>
+        </div>
       </div>
-      <div class="scraper-grid">${items}</div>
-      ${correctionsHtml}
+      <div class="scraper-body">
+        <div class="scraper-grid">${items}</div>
+        ${correctionsHtml}
+      </div>
     </div>`;
   }
 
   async function scrapeAllLotteries(btn) {
     btn.disabled = true;
-    btn.textContent = 'Scraping all...';
+    btn.textContent = 'Scraping...';
     try {
-      const res = await fetch('/api/scraper/run-all', {
-        method: 'POST',
-        headers: authHeaders()
-      });
+      const res = await fetch('/api/scraper/run-all', { method: 'POST', headers: authHeaders() });
       if (res.ok) {
         const result = await res.json();
-        showToast(`All lotteries updated in ${result.elapsed}`);
-        await loadData();
-        await refreshScraperStatus();
+        showToast(`All scraped in ${result.elapsed}`);
+        await Promise.all([loadData(), refreshScraperStatus()]);
       } else if (res.status === 401) {
-        showToast('Session expired', true);
-        logout();
+        showToast('Session expired', true); logout();
       } else {
         showToast('Scrape-all failed', true);
       }
@@ -403,28 +756,24 @@
 
   async function triggerScrape(lotteryId, btn) {
     btn.disabled = true;
-    btn.textContent = 'Scraping...';
+    btn.textContent = '...';
     try {
-      const res = await fetch(`/api/scraper/run/${lotteryId}`, {
-        method: 'POST',
-        headers: authHeaders()
-      });
+      const res = await fetch(`/api/scraper/run/${lotteryId}`, { method: 'POST', headers: authHeaders() });
       if (res.ok) {
         const result = await res.json();
         const updated = result.results?.filter(r => r.updated).length || 0;
         showToast(`${lotteryId}: ${updated} draw(s) updated`);
         await loadData();
       } else if (res.status === 401) {
-        showToast('Session expired', true);
-        logout();
+        showToast('Session expired', true); logout();
       } else {
         showToast('Scrape failed', true);
       }
     } catch (e) {
-      showToast('Scrape error: ' + e.message, true);
+      showToast('Error: ' + e.message, true);
     }
     btn.disabled = false;
-    btn.textContent = 'Scrape Now';
+    btn.textContent = 'Scrape';
     await refreshScraperStatus();
   }
 
@@ -433,34 +782,42 @@
     renderScraperPanel();
   }
 
-  // ── Render ──
-
+  // ── Render All ──
   function renderAll() {
+    renderSummary();
+    renderSidebar();
+    renderScraperPanel();
+
     const container = document.getElementById('lotteryList');
     let html = '';
-
     for (const col of DATA.columns) {
       for (const lottery of col.lotteries) {
         html += renderLotteryCard(lottery);
       }
     }
     container.innerHTML = html;
-    renderScraperPanel();
   }
 
   function renderLotteryCard(lottery) {
-    const rows = lottery.draws.map((draw, i) => renderDrawRow(lottery, draw, i)).join('');
+    const drawCount = lottery.draws.length;
+    const rows = drawCount > 0
+      ? lottery.draws.map((draw, i) => renderDrawRow(lottery, draw, i)).join('')
+      : '<div class="empty-draws">No draws configured</div>';
 
-    return `<div class="lottery-card">
+    return `<div class="lottery-card" id="card-${lottery.id}">
       <div class="lottery-header" style="background:linear-gradient(90deg,${lottery.color},${lottery.color}dd)">
-        <h3>${lottery.name} <span class="format-hint">(${lottery.format})</span></h3>
-        <button class="btn-add" onclick="addDraw('${lottery.id}')">+ Add Draw</button>
+        <h3>${lottery.name} <span class="format-hint">(${lottery.format})</span>
+          <span class="lottery-draw-count">${drawCount} draw${drawCount !== 1 ? 's' : ''}</span>
+        </h3>
+        <div class="lottery-header-actions">
+          <button class="btn-clear-lottery" onclick="clearLottery('${lottery.id}')">Clear</button>
+          <button class="btn-add" onclick="addDraw('${lottery.id}')">+ Add Draw</button>
+        </div>
       </div>
       ${rows}
     </div>`;
   }
 
-  /** Get default empty numbers template for a lottery format. */
   function emptyNumbers(format) {
     if (format === 'pick3') return ['00', '00', '00'];
     if (format === 'pick34') return ['0', '0', '0', '-', '0', '0', '0', '0'];
@@ -470,7 +827,6 @@
 
   function renderDrawRow(lottery, draw, index) {
     const id = lottery.id;
-    // Always show editable inputs — use empty template if no numbers
     const nums = (draw.numbers && draw.numbers.length > 0) ? draw.numbers : emptyNumbers(lottery.format);
 
     const numInputs = nums.map((n, ni) => {
@@ -478,11 +834,15 @@
       return `<input type="text" value="${n}" id="num_${id}_${index}_${ni}" style="width:${n.length > 1 ? 48 : 36}px">`;
     }).join('');
 
-    // Status badge — clickable to clear
     let statusHtml = '';
     if (draw.status) {
       const label = draw.status === 'closed' ? 'Closed' : draw.status === 'pending' ? 'Pending' : 'No Result';
-      statusHtml = `<button class="draw-status ${draw.status}" onclick="clearStatus('${id}', ${index})" title="Click to clear status">${label} ✕</button>`;
+      statusHtml = `<button class="draw-status ${draw.status}" onclick="clearStatus('${id}', ${index})" title="Click to clear status">${label} &#10005;</button>`;
+    }
+
+    let dateHtml = '';
+    if (draw.date) {
+      dateHtml = `<span class="draw-date">${draw.date}</span>`;
     }
 
     return `<div class="draw-row">
@@ -491,15 +851,15 @@
       </div>
       ${statusHtml}
       <div class="draw-numbers">${numInputs}</div>
+      ${dateHtml}
       <div class="draw-actions">
         <button class="btn-sm btn-save" onclick="saveDraw('${id}', ${index})">Save</button>
-        <button class="btn-sm btn-delete" onclick="deleteDraw('${id}', ${index})">Delete</button>
+        <button class="btn-sm btn-delete" onclick="deleteDraw('${id}', ${index})">Del</button>
       </div>
     </div>`;
   }
 
   // ── Actions ──
-
   function findLottery(lotteryId) {
     for (const col of DATA.columns) {
       for (const lottery of col.lotteries) {
@@ -511,18 +871,12 @@
 
   async function clearStatus(lotteryId, drawIndex) {
     const res = await fetch(`/api/results/${lotteryId}/${drawIndex}`, {
-      method: 'PUT',
-      headers: authHeaders(),
+      method: 'PUT', headers: authHeaders(),
       body: JSON.stringify({ clearStatus: true })
     });
-    if (res.ok) {
-      showToast('Status cleared');
-      await loadData();
-    } else if (res.status === 401) {
-      showToast('Session expired', true); logout();
-    } else {
-      showToast('Failed to clear status', true);
-    }
+    if (res.ok) { showToast('Status cleared'); await loadData(); }
+    else if (res.status === 401) { showToast('Session expired', true); logout(); }
+    else { showToast('Failed to clear status', true); }
   }
 
   async function saveDraw(lotteryId, drawIndex) {
@@ -535,107 +889,77 @@
 
     const numbers = [];
     template.forEach((n, ni) => {
-      if (n === '-') {
-        numbers.push('-');
-      } else {
+      if (n === '-') { numbers.push('-'); }
+      else {
         const el = document.getElementById(`num_${lotteryId}_${drawIndex}_${ni}`);
         numbers.push(el.value.trim());
       }
     });
 
     const res = await fetch(`/api/results/${lotteryId}/${drawIndex}`, {
-      method: 'PUT',
-      headers: authHeaders(),
+      method: 'PUT', headers: authHeaders(),
       body: JSON.stringify({ time, numbers })
     });
 
-    if (res.ok) {
-      showToast('Draw updated!');
-      await loadData();
-    } else if (res.status === 401) {
-      showToast('Session expired. Please login again.', true);
-      logout();
-    } else {
-      showToast('Failed to save', true);
-    }
+    if (res.ok) { showToast('Draw saved'); await loadData(); }
+    else if (res.status === 401) { showToast('Session expired', true); logout(); }
+    else { showToast('Failed to save', true); }
   }
 
   async function deleteDraw(lotteryId, drawIndex) {
     if (!confirm('Delete this draw?')) return;
-
     const res = await fetch(`/api/results/${lotteryId}/${drawIndex}`, {
-      method: 'DELETE',
-      headers: authHeaders()
+      method: 'DELETE', headers: authHeaders()
     });
-
-    if (res.ok) {
-      showToast('Draw deleted');
-      await loadData();
-    } else if (res.status === 401) {
-      showToast('Session expired', true);
-      logout();
-    } else {
-      showToast('Failed to delete', true);
-    }
+    if (res.ok) { showToast('Draw deleted'); await loadData(); }
+    else if (res.status === 401) { showToast('Session expired', true); logout(); }
+    else { showToast('Failed to delete', true); }
   }
 
   async function addDraw(lotteryId) {
     const lottery = findLottery(lotteryId);
     if (!lottery) return;
-
-    let numbers;
-    if (lottery.format === 'pick3') {
-      numbers = ['00', '00', '00'];
-    } else if (lottery.format === 'pick34') {
-      numbers = ['0', '0', '0', '-', '0', '0', '0', '0'];
-    } else if (lottery.format === 'florida') {
-      numbers = ['0', '0', '-', '0', '0', '0', '-', '0', '0', '0', '0'];
-    } else {
-      numbers = ['00', '00', '00'];
-    }
-
+    const numbers = emptyNumbers(lottery.format);
     const res = await fetch(`/api/results/${lotteryId}/draws`, {
-      method: 'POST',
-      headers: authHeaders(),
+      method: 'POST', headers: authHeaders(),
       body: JSON.stringify({ time: '12:00 PM', numbers })
     });
+    if (res.ok) { showToast('Draw added'); await loadData(); scrollToLottery(lotteryId); }
+    else if (res.status === 401) { showToast('Session expired', true); logout(); }
+    else { showToast('Failed to add draw', true); }
+  }
 
-    if (res.ok) {
-      showToast('Draw added!');
-      await loadData();
-    } else if (res.status === 401) {
-      showToast('Session expired', true);
-      logout();
-    } else {
-      showToast('Failed to add draw', true);
+  async function clearLottery(lotteryId) {
+    const lottery = findLottery(lotteryId);
+    if (!lottery) return;
+    if (!confirm(`Clear all draws for ${lottery.name}?`)) return;
+
+    // Delete all draws in reverse order
+    for (let i = lottery.draws.length - 1; i >= 0; i--) {
+      await fetch(`/api/results/${lotteryId}/${i}`, {
+        method: 'DELETE', headers: authHeaders()
+      });
     }
+    showToast(`${lottery.name} cleared`);
+    await loadData();
   }
 
   async function clearAll() {
     if (!confirm('Clear ALL lottery results? This cannot be undone.')) return;
     if (!confirm('Are you really sure? All numbers will be removed.')) return;
-
     const res = await fetch('/api/results/clear-all', {
-      method: 'POST',
-      headers: authHeaders()
+      method: 'POST', headers: authHeaders()
     });
-
-    if (res.ok) {
-      showToast('All results cleared');
-      await loadData();
-    } else if (res.status === 401) {
-      showToast('Session expired', true);
-      logout();
-    } else {
-      showToast('Failed to clear', true);
-    }
+    if (res.ok) { showToast('All results cleared'); await loadData(); }
+    else if (res.status === 401) { showToast('Session expired', true); logout(); }
+    else { showToast('Failed to clear', true); }
   }
 
   // ── Init ──
-
   if (TOKEN) {
-    // Verify token is still valid
-    fetch('/api/results').then(() => showDashboard()).catch(() => logout());
+    fetch('/api/scraper-status', { headers: authHeaders() })
+      .then(r => { if (r.ok) showDashboard(); else logout(); })
+      .catch(() => logout());
   }
 </script>
 </body>
