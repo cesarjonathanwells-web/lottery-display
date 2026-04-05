@@ -134,7 +134,8 @@
       "draws": [
         {
           "time": "9:00 PM",
-          "gameName": "Quiniela Leidsa"
+          "gameName": "Quiniela Leidsa",
+          "sundayTime": "4:00 PM"
         }
       ]
     },
