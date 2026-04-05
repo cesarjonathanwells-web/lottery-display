@@ -458,6 +458,19 @@ function init() {
 
   scheduleMidnightReset();
 
+  // Swap draw times on startup if today is Sunday
+  const isSunday = getNowEST().getDay() === 0;
+  if (isSunday) {
+    for (const sc of config.scrapers) {
+      for (const dc of sc.draws) {
+        if (dc.sundayTime) {
+          updateDrawTime(sc.lotteryId, dc.time, dc.sundayTime);
+        }
+      }
+    }
+    log('Sunday detected — swapped draw times');
+  }
+
   log(`Scheduler ready: ${config.scrapers.length} lotteries`);
 
   // Startup catch-up: accept today + yesterday's results
