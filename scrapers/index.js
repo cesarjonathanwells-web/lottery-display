@@ -189,6 +189,8 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
   log(`Polling: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
   updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'pending');
 
+  let candidate = null; // numbers must appear on 2 consecutive scrapes before accepting
+
   scraperStatus[key] = {
     lotteryId: scraperConfig.lotteryId,
     drawTime: drawConfig.time,
@@ -233,17 +235,28 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     if (!validation.valid) {
       log(`Rejected: ${scraperConfig.lotteryId} "${drawConfig.time}": ${validation.reason}`);
       scraperStatus[key].lastRejection = validation.reason;
+      candidate = null;
       return;
     }
 
-    if (hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
-      log(`Result: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')} (date: ${result.date})`);
-      updateDraw(scraperConfig.lotteryId, drawConfig.time, numbers, null, result.date);
-      scraperStatus[key].result = numbers;
-      stopTimer(activePollers, key);
-      scraperStatus[key].status = 'verifying';
-      startVerification(key, scraperConfig, drawConfig, numbers, verifyMs, pollInterval);
+    if (!hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) return;
+
+    const numKey = numbers.filter(n => n !== '-').join(',');
+
+    // Require same numbers on 2 consecutive scrapes before accepting
+    if (!candidate || candidate.key !== numKey) {
+      candidate = { key: numKey, numbers, date: result.date };
+      log(`Candidate: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numKey} — waiting for confirmation`);
+      return;
     }
+
+    // Confirmed — same numbers seen twice in a row
+    log(`Confirmed: ${scraperConfig.lotteryId} "${drawConfig.time}": ${numbers.join(',')} (date: ${result.date})`);
+    updateDraw(scraperConfig.lotteryId, drawConfig.time, candidate.numbers, null, candidate.date);
+    scraperStatus[key].result = candidate.numbers;
+    stopTimer(activePollers, key);
+    scraperStatus[key].status = 'verifying';
+    startVerification(key, scraperConfig, drawConfig, candidate.numbers, verifyMs, pollInterval);
   }
 }
 
