@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
-const { getToday, parseDrawTime, isToday, isRecent, log, TIMEZONE } = require('./utils');
+const { getToday, getNowEST, parseDrawTime, isToday, isRecent, log, TIMEZONE } = require('./utils');
 
 // Each scraper exports: scrapeDraw(scraperConfig, drawConfig) → { numbers, date, closed } | null
 const SCRAPERS = {
@@ -89,6 +89,18 @@ function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
 
   writeData(data);
   return true;
+}
+
+function updateDrawTime(lotteryId, oldTime, newTime) {
+  const data = readData();
+  const lottery = findLottery(data, lotteryId);
+  if (!lottery) return;
+  const idx = lottery.draws.findIndex(d => d.time === oldTime);
+  if (idx !== -1) {
+    lottery.draws[idx].time = newTime;
+    writeData(data);
+    log(`Time swap: ${lotteryId} "${oldTime}" → "${newTime}"`);
+  }
 }
 
 // ── Scraping ──────────────────────────────────────────────────
@@ -355,6 +367,21 @@ function scheduleMidnightReset() {
     }
     writeData(data);
     log('Cleared all draw statuses for new day');
+
+    // Swap draw times for day-specific schedules
+    const config = readConfig();
+    const isSunday = getNowEST().getDay() === 0;
+    for (const sc of config.scrapers) {
+      for (const dc of sc.draws) {
+        if (dc.sundayTime) {
+          if (isSunday) {
+            updateDrawTime(sc.lotteryId, dc.time, dc.sundayTime);
+          } else {
+            updateDrawTime(sc.lotteryId, dc.sundayTime, dc.time);
+          }
+        }
+      }
+    }
   }, { timezone: TIMEZONE });
 }
 
@@ -394,6 +421,24 @@ function init() {
       if (!parsed) {
         log(`  Skip: ${scraperConfig.lotteryId} "${drawConfig.time}" — invalid time`);
         continue;
+      }
+
+      if (drawConfig.sundayTime) {
+        const sundayParsed = parseDrawTime(drawConfig.sundayTime);
+        if (sundayParsed) {
+          // Mon-Sat: normal time
+          cron.schedule(`${parsed.minutes} ${parsed.hours} * * 1-6`, () => {
+            updateDrawTime(scraperConfig.lotteryId, drawConfig.sundayTime, drawConfig.time);
+            startPolling(scraperConfig, { ...drawConfig, time: drawConfig.time }, di);
+          }, { timezone: TIMEZONE });
+          // Sunday: alternate time
+          cron.schedule(`${sundayParsed.minutes} ${sundayParsed.hours} * * 0`, () => {
+            updateDrawTime(scraperConfig.lotteryId, drawConfig.time, drawConfig.sundayTime);
+            startPolling(scraperConfig, { ...drawConfig, time: drawConfig.sundayTime }, di);
+          }, { timezone: TIMEZONE });
+          log(`  ${scraperConfig.lotteryId} "${drawConfig.time}" → Mon-Sat ${String(parsed.hours).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}, Sun ${String(sundayParsed.hours).padStart(2, '0')}:${String(sundayParsed.minutes).padStart(2, '0')}`);
+          continue;
+        }
       }
 
       cron.schedule(`${parsed.minutes} ${parsed.hours} * * *`, () => {
