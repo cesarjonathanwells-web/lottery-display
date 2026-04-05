@@ -256,6 +256,17 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
       log(`Verified: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
       stopTimer(verifyPollers, key);
       scraperStatus[key].status = 'completed';
+      // Clear corrected flag once verification period ends — the number is now stable
+      const vData = readData();
+      const vLottery = findLottery(vData, scraperConfig.lotteryId);
+      if (vLottery) {
+        const vIdx = findDrawIndex(vLottery, drawConfig.time);
+        if (vIdx !== -1 && vLottery.draws[vIdx].corrected) {
+          delete vLottery.draws[vIdx].corrected;
+          writeData(vData);
+          log(`Cleared corrected flag: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+        }
+      }
       return;
     }
 
