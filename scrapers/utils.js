@@ -4,8 +4,6 @@ function getToday() {
   return new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE });
 }
 
-const todayET = getToday;
-
 function getNowEST() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
 }
@@ -59,4 +57,4 @@ function log(msg) {
   console.log(`[Scraper ${ts}] ${msg}`);
 }
 
-module.exports = { TIMEZONE, getToday, todayET, getNowEST, parseDrawTime, hasTimePassed, isToday, isRecent, cachedFetch, padNumbers, log };
+module.exports = { TIMEZONE, getToday, getNowEST, parseDrawTime, hasTimePassed, isToday, isRecent, cachedFetch, padNumbers, log };

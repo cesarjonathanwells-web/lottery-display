@@ -1,2 +1,6 @@
 node_modules/
 data/results.json
+.env
+.env.*
+.DS_Store
+*.log

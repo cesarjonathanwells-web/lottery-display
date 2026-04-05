@@ -6,7 +6,8 @@ const scraper = require('./scrapers');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) console.warn('WARNING: ADMIN_PASSWORD not set — login will be disabled');
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'results.json');
 const TEMPLATE_FILE = path.join(__dirname, 'config', 'results-template.json');
@@ -65,7 +66,7 @@ app.get('/api/results', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
+  if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
     const token = crypto.randomBytes(32).toString('hex');
     tokens.add(token);
     res.json({ token });
@@ -175,7 +176,8 @@ app.post('/api/scraper/run-all', authMiddleware, async (req, res) => {
     const result = await scraper.scrapeAll({ acceptRecent: true });
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Scrape-all error:', err);
+    res.status(500).json({ error: 'Scrape failed' });
   }
 });
 
@@ -185,7 +187,8 @@ app.post('/api/scraper/run/:lotteryId', authMiddleware, async (req, res) => {
     const result = await scraper.manualScrape(lotteryId, { acceptRecent: true });
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(`Scrape error (${lotteryId}):`, err);
+    res.status(500).json({ error: 'Scrape failed' });
   }
 });
 

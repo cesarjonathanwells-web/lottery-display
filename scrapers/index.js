@@ -231,6 +231,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     const { numbers } = result;
     const validation = validateNumbers(numbers, scraperConfig.lotteryId);
     if (!validation.valid) {
+      log(`Rejected: ${scraperConfig.lotteryId} "${drawConfig.time}": ${validation.reason}`);
       scraperStatus[key].lastRejection = validation.reason;
       return;
     }
@@ -315,13 +316,14 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
 
       if (dateOk) {
         const validation = validateNumbers(result.numbers, lotteryId);
-        if (validation.valid && hasNewNumbers(lotteryId, effectiveTime, result.numbers)) {
+        if (!validation.valid) {
+          log(`Rejected: ${lotteryId} "${effectiveTime}": ${validation.reason}`);
+        } else if (hasNewNumbers(lotteryId, effectiveTime, result.numbers)) {
           log(`Update: ${lotteryId} "${effectiveTime}": ${result.numbers.join(',')} (date: ${result.date})`);
           updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
           results.push({ time: effectiveTime, numbers: result.numbers, date: result.date, updated: true });
           continue;
         }
-        updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
       }
       results.push({ time: effectiveTime, updated: false });
     } else {
