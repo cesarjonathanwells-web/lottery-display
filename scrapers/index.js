@@ -302,30 +302,30 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
       results.push({ time: drawConfig.time, skipped: true, updated: false });
       continue;
     }
+
+    // Use Sunday time for lookups/updates when applicable
+    const effectiveTime = (isSunday && drawConfig.sundayTime) ? drawConfig.sundayTime : drawConfig.time;
+
     const result = await runScrape(scraperConfig, drawConfig);
 
     if (result && result.closed) {
-      // Don't set closed during catch-up/manual scrapes — the source page
-      // may show "no draw" for yesterday while today's draw hasn't happened yet.
-      // Only cron-triggered polling (at actual draw time) should mark closed.
-      results.push({ time: drawConfig.time, closed: true, updated: false });
+      results.push({ time: effectiveTime, closed: true, updated: false });
     } else if (result && result.numbers && result.numbers.length > 0) {
       const dateOk = !result.date || isToday(result.date) || (acceptRecent && isRecent(result.date));
 
       if (dateOk) {
         const validation = validateNumbers(result.numbers, lotteryId);
-        if (validation.valid && hasNewNumbers(lotteryId, drawConfig.time, result.numbers)) {
-          log(`Update: ${lotteryId} "${drawConfig.time}": ${result.numbers.join(',')} (date: ${result.date})`);
-          updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
-          results.push({ time: drawConfig.time, numbers: result.numbers, date: result.date, updated: true });
+        if (validation.valid && hasNewNumbers(lotteryId, effectiveTime, result.numbers)) {
+          log(`Update: ${lotteryId} "${effectiveTime}": ${result.numbers.join(',')} (date: ${result.date})`);
+          updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
+          results.push({ time: effectiveTime, numbers: result.numbers, date: result.date, updated: true });
           continue;
         }
-        // Numbers unchanged but clear any stale pending/no_result status
-        updateDraw(lotteryId, drawConfig.time, result.numbers, null, result.date);
+        updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
       }
-      results.push({ time: drawConfig.time, updated: false });
+      results.push({ time: effectiveTime, updated: false });
     } else {
-      results.push({ time: drawConfig.time, updated: false });
+      results.push({ time: effectiveTime, updated: false });
     }
   }
   return { lotteryId, results };
