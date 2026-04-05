@@ -12,11 +12,10 @@
     --mid:         #4a5f7a;
     --dark:        #1a2a40;
     --header-h:    62px;
-    --ticker-h:    40px;
     --main-pad:    10px;
     --card-head-h: 46px;
     --card-gap:    10px;
-    --row-h: calc((100vh - var(--header-h) - var(--ticker-h) - var(--main-pad)*2 - var(--card-head-h)) / 15);
+    --row-h: calc((100vh - var(--header-h) - var(--main-pad)*2 - var(--card-head-h)) / 15);
   }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -175,31 +174,10 @@
     margin-left: 6px; letter-spacing: .5px;
   }
 
-  /* Ticker */
-  .ticker {
-    flex-shrink: 0; height: var(--ticker-h);
-    background: #1a3560; border-top: 2px solid #2c5090;
-    display: flex; align-items: center; overflow: hidden;
-    z-index: 100;
-  }
-  .ticker-tag {
-    flex-shrink: 0; height: 100%; padding: 0 16px;
-    background: #fff; color: #1a3560;
-    font-size: 12px; font-weight: 700; letter-spacing: 2px;
-    text-transform: uppercase; display: flex; align-items: center;
-  }
-  .ticker-track { display: flex; animation: scroll 55s linear infinite; white-space: nowrap; }
-  .ticker-item {
-    font-size: 14px; letter-spacing: 1px; color: rgba(255,255,255,.65);
-    padding: 0 32px; font-feature-settings: 'tnum';
-  }
-  .ticker-item b { color: #fff; font-weight: 700; }
-
   /* Keyframes */
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
   @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse-pending { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
@@ -234,7 +212,7 @@
     .card-logo { height: 24px; }
     .time { width: 74px; font-size: 13px; }
     .card-status { font-size: 8px; padding: 2px 8px; }
-    .ticker-item { font-size: 13px; padding: 0 24px; }
+
   }
 
   /* Large phone / small tablet — 2 columns, compact */
@@ -257,9 +235,7 @@
     .card-head { height: 38px; padding: 0 10px; }
     .card-title { font-size: 14px; }
     .card-logo { height: 20px; margin-right: 6px; }
-    .ticker { height: 34px; }
-    .ticker-tag { font-size: 10px; padding: 0 10px; }
-    .ticker-item { font-size: 12px; padding: 0 18px; }
+
     .status-pending, .status-noresult { font-size: 10px; padding: 3px 10px; }
   }
 
@@ -287,8 +263,7 @@
     .hdr-warn { font-size: 12px; }
     .clock { font-size: 16px; }
     .card-title { font-size: 12px; }
-    .ticker { height: 30px; }
-    .ticker-item { font-size: 11px; padding: 0 14px; }
+
   }
 </style>
 </head>
@@ -313,10 +288,6 @@
 
 <main id="board"></main>
 
-<div class="ticker">
-  <div class="ticker-tag">RESULTS</div>
-  <div class="ticker-track" id="ticker"></div>
-</div>
 
 <script>
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -464,20 +435,6 @@
     ).join('');
   }
 
-  function renderTicker(data) {
-    const items = [];
-    for (const col of data.columns)
-      for (const lottery of col.lotteries)
-        for (const draw of lottery.draws) {
-          if (draw.status === 'pending')
-            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>PENDING</b></span>`);
-          else if (draw.status !== 'no_result' && draw.status !== 'closed')
-            items.push(`<span class="ticker-item">${lottery.name} ${draw.time} &nbsp; <b>${draw.numbers.join(draw.numbers.includes('-') ? '' : '-')}</b></span>`);
-        }
-    const html = items.join('');
-    document.getElementById('ticker').innerHTML = html + html;
-  }
-
   let lastDataHash = '';
   async function loadResults() {
     try {
@@ -487,7 +444,6 @@
       lastDataHash = text;
       const data = JSON.parse(text);
       renderBoard(data);
-      renderTicker(data);
     } catch (e) {
       console.error('Failed to load results:', e);
     }
