@@ -362,29 +362,113 @@
     padding: 20px 18px; text-align: center; color: var(--muted); font-size: 13px;
   }
 
-  /* ── Mobile ── */
+  /* ── Responsive ───────────────────────────────────── */
+
   .sidebar-toggle {
     display: none; background: none; border: none; color: var(--text);
     font-size: 20px; cursor: pointer; padding: 4px;
   }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 99;
+  }
 
+  /* Tablet — collapsible sidebar, adapted draw rows */
   @media (max-width: 900px) {
     :root { --sidebar-w: 0px; }
-    .sidebar { transform: translateX(-260px); width: 260px; transition: transform .25s; }
+    .sidebar {
+      transform: translateX(-280px); width: 280px;
+      transition: transform .25s ease;
+    }
     .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
     .sidebar-toggle { display: block; }
     .topbar { left: 0; }
     .main { margin-left: 0; }
+
     .summary-row { grid-template-columns: repeat(2, 1fr); }
-    .sidebar-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 99;
+    .scraper-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+    .draw-row {
+      flex-wrap: wrap; padding: 12px 14px; gap: 10px;
     }
-    .sidebar-overlay.open { display: block; }
+    .draw-time { width: auto; flex: 0 0 auto; }
+    .draw-time input { padding: 8px 10px; font-size: 14px; }
+    .draw-numbers { width: 100%; order: 10; }
+    .draw-numbers input { width: 48px !important; height: 42px; font-size: 15px; }
+    .draw-date-input { font-size: 13px; padding: 8px 10px; width: auto; flex: 1; min-width: 120px; }
+    .draw-actions .btn-sm { padding: 8px 14px; font-size: 13px; }
   }
-  @media (max-width: 540px) {
-    .summary-row { grid-template-columns: 1fr; }
-    .draw-row { flex-wrap: wrap; }
+
+  /* Phone — stacked layout, touch-friendly */
+  @media (max-width: 600px) {
+    .main { padding: 14px 10px; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .summary-card { padding: 12px 14px; }
+    .summary-card .sc-value { font-size: 24px; }
+
+    .topbar { padding: 0 10px; height: 50px; }
+    .topbar-left { gap: 8px; }
+    .topbar-date { font-size: 11px; }
+    .topbar-clock { font-size: 13px; }
+    .topbar-right { gap: 4px; }
+    .topbar-right .btn { padding: 6px 8px; font-size: 11px; }
     .topbar-right .btn span { display: none; }
+    .toggle-wrap span { display: none; }
+    .main { margin-top: 50px; }
+
+    .lottery-header { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+    .lottery-header h3 { font-size: 14px; width: 100%; }
+    .lottery-header-actions { width: 100%; justify-content: flex-end; }
+    .lottery-draw-count { margin-left: 0; }
+
+    .draw-row {
+      flex-direction: column; align-items: stretch;
+      padding: 14px; gap: 10px;
+    }
+    .draw-time { width: 100%; }
+    .draw-time input { width: 100%; padding: 10px 12px; font-size: 15px; }
+    .draw-numbers {
+      width: 100%; order: 0; justify-content: flex-start;
+    }
+    .draw-numbers input {
+      width: 48px !important; height: 46px;
+      font-size: 18px; font-weight: 800; border-radius: 8px;
+    }
+    .draw-numbers .sep { font-size: 20px; }
+    .draw-date-input {
+      width: 100%; padding: 10px 12px; font-size: 15px; border-radius: 8px;
+    }
+    .draw-actions {
+      width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .draw-actions .btn-sm {
+      padding: 12px; font-size: 14px; text-align: center; border-radius: 8px;
+    }
+    .draw-status { align-self: flex-start; }
+
+    .scraper-grid { grid-template-columns: 1fr; gap: 8px; }
+    .scraper-item { padding: 12px; }
+    .scraper-panel-header { padding: 10px 14px; }
+    .scraper-panel-header h3 { font-size: 13px; }
+
+    .correction-item { font-size: 12px; padding: 8px 10px; }
+
+    .login-box { width: calc(100vw - 32px); max-width: 360px; padding: 28px 20px; }
+    .login-box h2 { font-size: 20px; }
+    .login-box input { padding: 14px 16px; font-size: 16px; }
+    .login-box .btn-primary { padding: 14px; font-size: 16px; }
+
+    .toast { bottom: 12px; right: 12px; left: 12px; text-align: center; font-size: 13px; }
+  }
+
+  /* Small phone */
+  @media (max-width: 380px) {
+    .summary-row { grid-template-columns: 1fr; }
+    .summary-card .sc-value { font-size: 22px; }
+    .topbar-date { display: none; }
+    .draw-numbers input { width: 40px !important; height: 42px; font-size: 16px; }
+    .lottery-header h3 { font-size: 13px; }
+    .scraper-item-name { font-size: 12px; }
   }
 </style>
 </head>

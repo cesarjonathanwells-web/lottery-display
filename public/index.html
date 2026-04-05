@@ -201,18 +201,90 @@
   @keyframes pulse-pending { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
   @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  /* Mobile */
+  /* ── Responsive ───────────────────────────────────── */
+
+  /* Large tablet / small desktop — 3 columns */
+  @media (max-width: 1200px) {
+    main { grid-template-columns: repeat(3, 1fr); }
+    .ball   { width: 34px; height: 34px; font-size: 18px; }
+    .ball-d { width: 27px; height: 27px; font-size: 18px; }
+    .hdr-warn { font-size: 24px; }
+    .time { width: 80px; font-size: 14px; }
+    .card-title { font-size: 18px; }
+  }
+
+  /* Tablet portrait — 2 columns, scrollable */
   @media (max-width: 900px) {
     html, body { overflow: auto; height: auto; }
-    main { grid-template-columns: repeat(2, 1fr); height: auto; overflow: visible; }
-    .row { height: 52px; }
+    main {
+      grid-template-columns: repeat(2, 1fr);
+      height: auto; overflow: visible; align-items: start;
+    }
+    :root { --row-h: 48px; }
+    .row { height: 48px; }
+    .ball   { width: 32px; height: 32px; font-size: 17px; }
+    .ball-d { width: 24px; height: 24px; font-size: 17px; }
+    .hdr-warn { font-size: 20px; letter-spacing: 1px; }
+    .card-head { height: 42px; padding: 0 12px; }
+    .card-title { font-size: 16px; }
+    .card-logo { height: 24px; }
+    .time { width: 74px; font-size: 13px; }
+    .card-status { font-size: 8px; padding: 2px 8px; }
+    .ticker-item { font-size: 13px; padding: 0 24px; }
   }
+
+  /* Large phone / small tablet — 2 columns, compact */
+  @media (max-width: 700px) {
+    header { height: auto; min-height: 52px; padding: 8px 14px; flex-wrap: wrap; gap: 4px; }
+    .logo-icon { width: 32px; height: 32px; font-size: 14px; border-radius: 7px; }
+    .logo-text { font-size: 14px; }
+    .logo-sub { font-size: 8px; letter-spacing: 2px; }
+    .hdr-warn { font-size: 15px; letter-spacing: 1px; width: 100%; text-align: center; order: 3; }
+    .clock { font-size: 18px; }
+    .hdr-date { font-size: 9px; }
+    main { gap: 8px; padding: 8px; }
+    .card { border-radius: 8px; }
+    .row { height: 44px; padding: 0 10px; gap: 6px; }
+    .ball   { width: 30px; height: 30px; font-size: 16px; }
+    .ball-d { width: 22px; height: 22px; font-size: 16px; }
+    .ball-sep { font-size: 14px; }
+    .balls { gap: 2px; }
+    .time { width: 66px; font-size: 12px; }
+    .card-head { height: 38px; padding: 0 10px; }
+    .card-title { font-size: 14px; }
+    .card-logo { height: 20px; margin-right: 6px; }
+    .ticker { height: 34px; }
+    .ticker-tag { font-size: 10px; padding: 0 10px; }
+    .ticker-item { font-size: 12px; padding: 0 18px; }
+    .status-pending, .status-noresult { font-size: 10px; padding: 3px 10px; }
+  }
+
+  /* Phone — single column */
   @media (max-width: 540px) {
     main { grid-template-columns: 1fr; }
-    header { height: auto; padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
-    .hdr-warn { font-size: 15px; }
-    .clock { font-size: 20px; }
-    .row { height: 48px; }
+    .hdr-center { width: 100%; }
+    .row { height: 42px; padding: 0 8px; gap: 4px; }
+    .ball   { width: 28px; height: 28px; font-size: 15px; }
+    .ball-d { width: 20px; height: 20px; font-size: 15px; }
+    .time { width: 60px; font-size: 11px; }
+    .card-head { height: 36px; }
+    .card-title { font-size: 13px; letter-spacing: 0; }
+    .card-status { font-size: 7px; padding: 2px 6px; }
+    .row-status { font-size: 8px; padding: 1px 6px; }
+    .status-corrected { font-size: 8px; }
+  }
+
+  /* Very small phone */
+  @media (max-width: 380px) {
+    .ball   { width: 24px; height: 24px; font-size: 13px; }
+    .ball-d { width: 18px; height: 18px; font-size: 13px; }
+    .ball-sep { font-size: 12px; }
+    .time { width: 52px; font-size: 10px; }
+    .hdr-warn { font-size: 12px; }
+    .clock { font-size: 16px; }
+    .card-title { font-size: 12px; }
+    .ticker { height: 30px; }
+    .ticker-item { font-size: 11px; padding: 0 14px; }
   }
 </style>
 </head>
