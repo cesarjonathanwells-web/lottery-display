@@ -88,21 +88,16 @@ function combineNumbers(gameMap, data, format) {
     const p2 = gameMap.pick2 ? getDigits(data, gameMap.pick2) : null;
     const p3 = gameMap.pick3 ? getDigits(data, gameMap.pick3) : null;
     const p4 = gameMap.pick4 ? getDigits(data, gameMap.pick4) : null;
-    if (!p2 && !p3 && !p4) return null;
-    const numbers = [];
-    if (p2) numbers.push(...p2);
-    if (p3) { if (numbers.length) numbers.push('-'); numbers.push(...p3); }
-    if (p4) { if (numbers.length) numbers.push('-'); numbers.push(...p4); }
-    return numbers;
+    // Require all parts before returning — source posts them incrementally
+    if (!p2 || !p3 || !p4) return null;
+    return [...p2, '-', ...p3, '-', ...p4];
   }
 
   const p3 = gameMap.pick3 ? getDigits(data, gameMap.pick3) : null;
   const p4 = gameMap.pick4 ? getDigits(data, gameMap.pick4) : null;
-  if (!p3 && !p4) return null;
-  const numbers = [];
-  if (p3) numbers.push(...p3);
-  if (p4) { numbers.push('-'); numbers.push(...p4); }
-  return numbers;
+  // Require both pick3 and pick4 before returning
+  if (!p3 || !p4) return null;
+  return [...p3, '-', ...p4];
 }
 
 async function scrapeDraw(scraperConfig, drawConfig) {
