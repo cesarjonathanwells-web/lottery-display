@@ -295,8 +295,13 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
   const scraperConfig = config.scrapers.find(s => s.lotteryId === lotteryId);
   if (!scraperConfig) return { error: `No scraper config for ${lotteryId}` };
 
+  const isSunday = getNowEST().getDay() === 0;
   const results = [];
   for (const drawConfig of scraperConfig.draws) {
+    if (drawConfig.skipSunday && isSunday) {
+      results.push({ time: drawConfig.time, skipped: true, updated: false });
+      continue;
+    }
     const result = await runScrape(scraperConfig, drawConfig);
 
     if (result && result.closed) {
@@ -441,11 +446,13 @@ function init() {
         }
       }
 
-      cron.schedule(`${parsed.minutes} ${parsed.hours} * * *`, () => {
+      const cronDays = drawConfig.skipSunday ? '1-6' : '*';
+      cron.schedule(`${parsed.minutes} ${parsed.hours} * * ${cronDays}`, () => {
         startPolling(scraperConfig, drawConfig, di);
       }, { timezone: TIMEZONE });
 
-      log(`  ${scraperConfig.lotteryId} "${drawConfig.time}" → ${String(parsed.hours).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}`);
+      const skipLabel = drawConfig.skipSunday ? ' (Mon-Sat)' : '';
+      log(`  ${scraperConfig.lotteryId} "${drawConfig.time}" → ${String(parsed.hours).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}${skipLabel}`);
     }
   }
 

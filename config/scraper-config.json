@@ -163,7 +163,8 @@
       "draws": [
         {
           "time": "10:00 AM",
-          "drawLabel": "MA\u00d1ANA"
+          "drawLabel": "MA\u00d1ANA",
+          "skipSunday": true
         },
         {
           "time": "1:00 PM",
@@ -171,15 +172,18 @@
         },
         {
           "time": "3:00 PM",
-          "drawLabel": "MEDIA TARDE"
+          "drawLabel": "MEDIA TARDE",
+          "skipSunday": true
         },
         {
           "time": "6:00 PM",
-          "drawLabel": "TARDE"
+          "drawLabel": "TARDE",
+          "skipSunday": true
         },
         {
           "time": "9:00 PM",
-          "drawLabel": "NOCHE"
+          "drawLabel": "NOCHE",
+          "skipSunday": true
         }
       ]
     },
