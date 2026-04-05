@@ -12,7 +12,7 @@ const SCRAPERS = {
 };
 
 const DATA_FILE = path.join(__dirname, '..', 'data', 'results.json');
-const CONFIG_FILE = path.join(__dirname, '..', 'data', 'scraper-config.json');
+const CONFIG_FILE = path.join(__dirname, '..', 'config', 'scraper-config.json');
 
 const activePollers = {};
 const verifyPollers = {};

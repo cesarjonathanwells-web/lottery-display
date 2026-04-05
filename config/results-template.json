@@ -1,0 +1,125 @@
+{
+  "columns": [
+    {
+      "lotteries": [
+        {
+          "id": "anguilla",
+          "name": "Anguilla",
+          "color": "#d4693a",
+          "format": "pick3",
+          "draws": []
+        }
+      ]
+    },
+    {
+      "lotteries": [
+        {
+          "id": "ocean",
+          "name": "Ocean",
+          "color": "#00838f",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "lotedom",
+          "name": "Lotedom",
+          "color": "#1a2aab",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "laprimera",
+          "name": "La Primera",
+          "color": "#c4333b",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "lasuerte",
+          "name": "La Suerte",
+          "color": "#33337a",
+          "format": "pick3",
+          "draws": []
+        }
+      ]
+    },
+    {
+      "lotteries": [
+        {
+          "id": "kinglottery",
+          "name": "King Lottery",
+          "color": "#0d5a8f",
+          "format": "pick34",
+          "draws": []
+        },
+        {
+          "id": "real",
+          "name": "Real",
+          "color": "#1e2f7a",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "georgia",
+          "name": "Georgia",
+          "color": "#c41230",
+          "format": "pick34",
+          "draws": []
+        },
+        {
+          "id": "newjersey",
+          "name": "New Jersey",
+          "color": "#1a7a3a",
+          "format": "pick34",
+          "draws": []
+        },
+        {
+          "id": "florida",
+          "name": "Florida",
+          "color": "#c4197d",
+          "format": "florida",
+          "draws": []
+        }
+      ]
+    },
+    {
+      "lotteries": [
+        {
+          "id": "nacional",
+          "name": "Nacional",
+          "color": "#3aaa48",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "connecticut",
+          "name": "Connecticut",
+          "color": "#37474f",
+          "format": "pick34",
+          "draws": []
+        },
+        {
+          "id": "newyork",
+          "name": "New York",
+          "color": "#1a4ea0",
+          "format": "pick34",
+          "draws": []
+        },
+        {
+          "id": "loteka",
+          "name": "Loteka",
+          "color": "#0098bf",
+          "format": "pick3",
+          "draws": []
+        },
+        {
+          "id": "quinielapale",
+          "name": "Quiniela Pale",
+          "color": "#d4a81a",
+          "format": "pick3",
+          "draws": []
+        }
+      ]
+    }
+  ]
+}

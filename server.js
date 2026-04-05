@@ -7,7 +7,16 @@ const scraper = require('./scrapers');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const DATA_FILE = path.join(__dirname, 'data', 'results.json');
+const DATA_DIR = path.join(__dirname, 'data');
+const DATA_FILE = path.join(DATA_DIR, 'results.json');
+const TEMPLATE_FILE = path.join(__dirname, 'config', 'results-template.json');
+
+// Ensure data dir and results.json exist (first boot with empty volume)
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(DATA_FILE)) {
+  console.log('No results.json found — initializing from template');
+  fs.copyFileSync(TEMPLATE_FILE, DATA_FILE);
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
