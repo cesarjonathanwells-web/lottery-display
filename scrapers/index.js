@@ -52,6 +52,35 @@ function stopTimer(map, key) {
   if (map[key]) { clearInterval(map[key]); delete map[key]; }
 }
 
+// ── Per-component change detection ──────────────────────────
+// Split a combined numbers array (e.g. ["0","9","0","-","4","0","7","3"])
+// into its component segments: [["0","9","0"], ["4","0","7","3"]]
+function splitParts(numbers) {
+  if (!numbers || numbers.length === 0) return [];
+  const parts = [];
+  let current = [];
+  for (const n of numbers) {
+    if (n === '-') {
+      if (current.length) parts.push(current);
+      current = [];
+    } else {
+      current.push(n);
+    }
+  }
+  if (current.length) parts.push(current);
+  return parts;
+}
+
+// Check that every component in newParts differs from storedParts.
+// Returns true if ALL parts have changed (safe to accept).
+function allPartsChanged(storedParts, newParts) {
+  if (storedParts.length !== newParts.length) return true; // structure changed, accept
+  for (let i = 0; i < storedParts.length; i++) {
+    if (storedParts[i].join(',') === newParts[i].join(',')) return false;
+  }
+  return true;
+}
+
 // ── Scrape result helpers ────────────────────────────────────
 
 function countUpdatedResults(results) {
@@ -187,6 +216,16 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
   const startTime = Date.now();
 
   log(`Polling: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+
+  // Snapshot the stored numbers BEFORE setting pending — these are yesterday's values.
+  // Used to detect per-component staleness (e.g. pick3 updated but pick4 still stale).
+  const preData = readData();
+  const preLottery = findLottery(preData, scraperConfig.lotteryId);
+  const preIdx = preLottery ? findDrawIndex(preLottery, drawConfig.time) : -1;
+  const storedParts = (preIdx !== -1 && preLottery.draws[preIdx].numbers)
+    ? splitParts(preLottery.draws[preIdx].numbers)
+    : [];
+
   updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'pending');
 
   let candidate = null; // numbers must appear on 2 consecutive scrapes before accepting
@@ -240,6 +279,19 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     }
 
     if (!hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) return;
+
+    // Per-component staleness check: when the result combines multiple games
+    // (pick3 + pick4), require EVERY component to have changed from the stored
+    // values. This prevents publishing a mix of fresh + stale numbers when the
+    // source updates games at different times.
+    if (storedParts.length > 1) {
+      const newParts = result.parts || splitParts(numbers);
+      if (!allPartsChanged(storedParts, newParts)) {
+        log(`Partial: ${scraperConfig.lotteryId} "${drawConfig.time}": not all components updated yet`);
+        candidate = null; // reset candidate — partial results are not trustworthy
+        return;
+      }
+    }
 
     const numKey = numbers.filter(n => n !== '-').join(',');
 

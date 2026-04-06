@@ -90,14 +90,14 @@ function combineNumbers(gameMap, data, format) {
     const p4 = gameMap.pick4 ? getDigits(data, gameMap.pick4) : null;
     // Require all parts before returning — source posts them incrementally
     if (!p2 || !p3 || !p4) return null;
-    return [...p2, '-', ...p3, '-', ...p4];
+    return { numbers: [...p2, '-', ...p3, '-', ...p4], parts: [p2, p3, p4] };
   }
 
   const p3 = gameMap.pick3 ? getDigits(data, gameMap.pick3) : null;
   const p4 = gameMap.pick4 ? getDigits(data, gameMap.pick4) : null;
   // Require both pick3 and pick4 before returning
   if (!p3 || !p4) return null;
-  return [...p3, '-', ...p4];
+  return { numbers: [...p3, '-', ...p4], parts: [p3, p4] };
 }
 
 async function scrapeDraw(scraperConfig, drawConfig) {
@@ -111,11 +111,11 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   const date = getResultDate(data, gameMap);
   if (isToday(date) && drawConfig.time && !hasTimePassed(drawConfig.time)) return null;
 
-  const numbers = combineNumbers(gameMap, data, format);
-  if (!numbers) return null;
+  const combined = combineNumbers(gameMap, data, format);
+  if (!combined) return null;
 
   log(`${scraperConfig.lotteryId} "${drawConfig.time}" source date: ${date}`);
-  return { numbers, date, closed: false };
+  return { numbers: combined.numbers, parts: combined.parts, date, closed: false };
 }
 
 module.exports = { scrapeDraw };
