@@ -402,8 +402,8 @@
     }
 
     if (draw.status === 'no_result') {
-      const badge = '<span class="row-status row-status-noresult">No Result</span>';
-      return hasNumbers ? badge + renderBalls(lottery, draw) : '<span class="status-noresult">No Result</span>';
+      if (hasNumbers) return renderBalls(lottery, draw);
+      return '<span class="status-noresult">No Result</span>';
     }
 
     return hasNumbers ? renderBalls(lottery, draw) : '';

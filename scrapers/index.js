@@ -250,8 +250,20 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
     if (Date.now() - startTime > timeoutMs) {
       log(`Timeout: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
       stopTimer(activePollers, key);
-      updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'no_result');
-      scraperStatus[key].status = 'timeout';
+
+      // Don't set no_result if numbers were already found (e.g. by periodic scrape)
+      const currentData = readData();
+      const currentLottery = findLottery(currentData, scraperConfig.lotteryId);
+      const currentIdx = currentLottery ? findDrawIndex(currentLottery, drawConfig.time) : -1;
+      const alreadyHasNumbers = currentIdx !== -1 && currentLottery.draws[currentIdx].numbers && currentLottery.draws[currentIdx].numbers.length > 0;
+
+      if (alreadyHasNumbers) {
+        log(`Timeout but numbers exist: ${scraperConfig.lotteryId} "${drawConfig.time}" — keeping results`);
+        scraperStatus[key].status = 'completed';
+      } else {
+        updateDraw(scraperConfig.lotteryId, drawConfig.time, null, 'no_result');
+        scraperStatus[key].status = 'timeout';
+      }
       return;
     }
 
@@ -278,7 +290,14 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
       return;
     }
 
-    if (!hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) return;
+    if (!hasNewNumbers(scraperConfig.lotteryId, drawConfig.time, numbers)) {
+      // Numbers already match what's in the data (e.g. periodic scrape got them first)
+      log(`Already up-to-date: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+      stopTimer(activePollers, key);
+      scraperStatus[key].status = 'completed';
+      scraperStatus[key].result = numbers;
+      return;
+    }
 
     // Per-component staleness check: when the result combines multiple games
     // (pick3 + pick4), require EVERY component to have changed from the stored
