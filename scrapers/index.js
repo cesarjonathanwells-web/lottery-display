@@ -255,7 +255,8 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
       const currentData = readData();
       const currentLottery = findLottery(currentData, scraperConfig.lotteryId);
       const currentIdx = currentLottery ? findDrawIndex(currentLottery, drawConfig.time) : -1;
-      const alreadyHasNumbers = currentIdx !== -1 && currentLottery.draws[currentIdx].numbers && currentLottery.draws[currentIdx].numbers.length > 0;
+      const draw = currentIdx !== -1 ? currentLottery.draws[currentIdx] : null;
+      const alreadyHasNumbers = draw && draw.numbers && draw.numbers.length > 0 && isToday(draw.date);
 
       if (alreadyHasNumbers) {
         log(`Timeout but numbers exist: ${scraperConfig.lotteryId} "${drawConfig.time}" — keeping results`);
@@ -418,6 +419,9 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
           updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
           results.push({ time: effectiveTime, numbers: result.numbers, date: result.date, updated: true });
           continue;
+        } else {
+          // Numbers unchanged — clear any stale pending/no_result status
+          updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
         }
       }
       results.push({ time: effectiveTime, updated: false });
