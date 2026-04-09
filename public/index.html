@@ -86,20 +86,20 @@
     display: flex; flex-direction: column;
     background: var(--bg-panel); border: 1px solid var(--border);
     border-radius: 10px; overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
     animation: rise .45s ease both;
   }
   .card-head {
-    flex-shrink: 0; height: var(--card-head-h);
+    flex-shrink: 0; height: 42px;
     padding: 0 14px; display: flex; align-items: center;
   }
   .card-logo {
-    height: 28px; width: auto; border-radius: 4px; flex-shrink: 0;
+    height: 26px; width: auto; border-radius: 4px; flex-shrink: 0;
     object-fit: contain; background: rgba(255,255,255,.9);
     padding: 2px; margin-right: 8px;
   }
   .card-title {
-    font-size: 20px; font-weight: 800; letter-spacing: .5px;
+    font-size: 18px; font-weight: 800; letter-spacing: .5px;
     color: #fff; text-transform: uppercase;
   }
 
@@ -108,28 +108,29 @@
     height: var(--row-h); flex-shrink: 0;
     display: flex; align-items: center;
     padding: 0 14px; gap: 8px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #e4eaf2;
     transition: background .15s;
   }
+  .row:nth-child(even) { background: #f7f9fc; }
   .row:last-child { border-bottom: none; }
   .row:hover { background: #eef3fc; }
 
   .time {
     width: 90px; flex-shrink: 0;
-    font-size: 15px; font-weight: 500;
-    color: #8494a7; letter-spacing: .3px; line-height: 1;
+    font-size: 16px; font-weight: 600;
+    color: #5a6a7d; letter-spacing: .3px; line-height: 1;
   }
 
   /* Balls */
   .balls {
     flex: 1; display: flex; align-items: center;
-    justify-content: flex-end; gap: 3px;
+    justify-content: flex-end; gap: 2px;
   }
-  .ball-group { display: flex; align-items: center; gap: 3px; }
+  .ball-group { display: flex; align-items: center; gap: 1px; }
   .ball-sep {
-    font-size: 26px; font-weight: 900;
-    color: #7a8a9a; line-height: 1;
-    flex-shrink: 0; margin: 0 2px;
+    font-size: 24px; font-weight: 700;
+    color: #98a8b8; line-height: 1;
+    flex-shrink: 0; margin: 0 1px;
   }
   .ball, .ball-d {
     display: flex; align-items: center; justify-content: center;
