@@ -8,7 +8,12 @@ const SCRAPERS = {
   anguilla: require('./anguilla'),
   conectate: require('./conectate'),
   ocean: require('./ocean'),
-  lotterycoast: require('./lotterycoast')
+  lotterycoast: require('./lotterycoast'),
+  newyork: require('./newyork'),
+  florida: require('./florida'),
+  georgia: require('./georgia'),
+  newjersey: require('./newjersey'),
+  connecticut: require('./connecticut')
 };
 
 const DATA_FILE = path.join(__dirname, '..', 'data', 'results.json');
