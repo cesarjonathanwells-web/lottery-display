@@ -37,10 +37,19 @@ function parseDate(drawDate) {
 }
 
 function findLatestDraw(allGames, gameId, drawType) {
-  return allGames.find(g =>
+  const matches = allGames.filter(g =>
     g.Id === gameId &&
-    g.DrawType && g.DrawType.toUpperCase() === drawType.toUpperCase()
-  ) || null;
+    g.DrawType && g.DrawType.toUpperCase() === drawType.toUpperCase() &&
+    g.DrawNumbers && g.DrawNumbers.some(d => d.NumberType && d.NumberType.startsWith('wn'))
+  );
+  if (matches.length === 0) return null;
+  // Sort by date descending, take the newest
+  matches.sort((a, b) => {
+    const da = parseDate(a.DrawDate) || '';
+    const db = parseDate(b.DrawDate) || '';
+    return db.localeCompare(da);
+  });
+  return matches[0];
 }
 
 async function scrapeDraw(scraperConfig, drawConfig) {
