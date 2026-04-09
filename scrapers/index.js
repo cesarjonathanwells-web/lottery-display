@@ -510,7 +510,7 @@ function startupCatchUp() {
 }
 
 function schedulePeriodicScrape() {
-  cron.schedule('*/10 * * * *', async () => {
+  cron.schedule('*/5 * * * *', async () => {
     try {
       const result = await scrapeAll({ acceptRecent: false });
       const updated = countUpdatedResults(result.results);

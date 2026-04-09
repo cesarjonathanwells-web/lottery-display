@@ -1,7 +1,7 @@
 {
   "timezone": "America/New_York",
   "defaultTimeoutMinutes": 120,
-  "pollIntervalSeconds": 45,
+  "pollIntervalSeconds": 30,
   "verifyMinutes": 15,
   "scrapers": [
     {
