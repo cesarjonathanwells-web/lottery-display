@@ -69,8 +69,17 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   // Require all three parts
   if (!p2 || !p3 || !p4) return null;
 
+  // All three games must share the same date to avoid mixing stale + fresh numbers
+  const d2 = parseDate(p2draw.DrawDate);
+  const d3 = parseDate(p3draw.DrawDate);
+  const d4 = parseDate(p4draw.DrawDate);
+  if (d2 !== d3 || d2 !== d4) {
+    log(`florida "${drawConfig.session}" date mismatch: p2=${d2} p3=${d3} p4=${d4} — skipping`);
+    return null;
+  }
+
   const numbers = [...p2, '-', ...p3, '-', ...p4];
-  const date = parseDate((p2draw || p3draw || p4draw).DrawDate);
+  const date = d2;
 
   log(`florida "${drawConfig.session}" source date: ${date}`);
   return { numbers, parts: [p2, p3, p4], date, closed: false };
