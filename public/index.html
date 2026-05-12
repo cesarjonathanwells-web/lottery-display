@@ -437,6 +437,40 @@
   }
   loadResults();
   setInterval(loadResults, 30000);
+
+  // ── Analytics beacons ────────────────────────────────────────────
+  // Cross-origin POST to islandnumbers.com/__a so /admin can show how many
+  // bancas are using this kiosk. No cookies; the server hashes IP + UA.
+  (function () {
+    var BEACON = 'https://islandnumbers.com/__a';
+    var SITE = 'lottery-display';
+    function send(type, value, text) {
+      try {
+        var payload = JSON.stringify({
+          type: type, value: value || 0, text: text || '',
+          path: window.location.pathname, site: SITE,
+        });
+        var blob = new Blob([payload], { type: 'application/json' });
+        if (navigator.sendBeacon && type !== 'pageview') {
+          navigator.sendBeacon(BEACON, blob);
+        } else {
+          fetch(BEACON, {
+            method: 'POST', body: payload, mode: 'cors', credentials: 'omit',
+            headers: { 'Content-Type': 'application/json' }, keepalive: true,
+          });
+        }
+      } catch (_) {}
+    }
+
+    // Initial pageview on load.
+    send('pageview', 0);
+
+    // Heartbeats every 60s so we can compute time-on-page / session length.
+    var startedAt = Date.now();
+    function elapsedSec() { return Math.floor((Date.now() - startedAt) / 1000); }
+    setInterval(function () { send('heartbeat', elapsedSec()); }, 60000);
+    window.addEventListener('pagehide', function () { send('heartbeat', elapsedSec()); }, { once: true });
+  })();
 </script>
 </body>
 </html>
