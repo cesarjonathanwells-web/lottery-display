@@ -442,7 +442,7 @@
   // Cross-origin POST to islandnumbers.com/__a so /admin can show how many
   // bancas are using this kiosk. No cookies; the server hashes IP + UA.
   (function () {
-    var BEACON = 'https://islandnumbers.com/__a';
+    var BEACON = 'https://islandnumbers.com/api/beacon';
     var SITE = 'lottery-display';
     function send(type, value, text) {
       try {
