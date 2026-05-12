@@ -45,11 +45,20 @@
     box-shadow: 0 4px 20px rgba(0,0,0,.2);
     z-index: 100;
   }
-  .site-url {
-    font-size: 28px; font-weight: 900; letter-spacing: 2px;
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1565c0, #5bc8ff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #fff;
+  }
+  .logo-text {
+    font-size: 18px; font-weight: 900; letter-spacing: 1px;
     color: #fff; text-transform: uppercase; line-height: 1;
-    text-shadow: 0 0 18px rgba(91, 200, 255, 0.45);
-    font-family: 'Calibri', 'Trebuchet MS', sans-serif;
+  }
+  .logo-sub {
+    font-size: 10px; letter-spacing: 3px;
+    color: rgba(255,255,255,.45); text-transform: uppercase; margin-top: 2px;
   }
   .hdr-center { text-align: center; }
   .hdr-warn {
@@ -214,7 +223,9 @@
   /* Large phone / small tablet — 2 columns, compact */
   @media (max-width: 700px) {
     header { height: auto; min-height: 52px; padding: 8px 14px; flex-wrap: wrap; gap: 4px; }
-    .site-url { font-size: 16px; letter-spacing: 1.5px; }
+    .logo-icon { width: 32px; height: 32px; font-size: 14px; border-radius: 7px; }
+    .logo-text { font-size: 14px; }
+    .logo-sub { font-size: 8px; letter-spacing: 2px; }
     .hdr-warn { font-size: 15px; letter-spacing: 1px; width: 100%; text-align: center; order: 3; }
     .clock { font-size: 18px; }
     .hdr-date { font-size: 9px; }
@@ -264,7 +275,13 @@
 <body>
 
 <header>
-  <div class="site-url">ISLANDNUMBERS.COM</div>
+  <div class="logo">
+    <div class="logo-icon">L</div>
+    <div>
+      <div class="logo-text">Lucky Draw</div>
+      <div class="logo-sub">Results Board</div>
+    </div>
+  </div>
   <div class="hdr-center">
     <div class="hdr-warn">&#9888; &nbsp; Check your ticket before you leave &nbsp; &#9888;</div>
   </div>
