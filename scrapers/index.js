@@ -107,6 +107,13 @@ function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
   const drawDate = date || getToday();
   const idx = findDrawIndex(lottery, drawTime);
 
+  // A listener-locked draw is authoritative for the day — don't let a scraper
+  // overwrite it. The nightly reset clears `locked`. (Unlock manually via DELETE.)
+  if (idx !== -1 && lottery.draws[idx].locked === true) {
+    log(`Skip update (locked): ${lotteryId} "${drawTime}"`);
+    return false;
+  }
+
   if (idx === -1) {
     lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null, date: drawDate });
   } else {
@@ -473,6 +480,7 @@ function scheduleMidnightReset() {
         for (const draw of lottery.draws) {
           delete draw.status;
           delete draw.corrected;
+          delete draw.locked;
         }
       }
     }

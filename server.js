@@ -132,7 +132,19 @@ app.post('/api/results/:lotteryId/draws', authMiddleware, (req, res) => {
     return res.status(404).json({ error: 'Lottery not found' });
   }
 
-  lottery.draws.push({ time, numbers, date: todayET() });
+  // Listener-posted results are authoritative: upsert by time so we don't create
+  // duplicate rows, and lock the draw so scrapers won't overwrite it. The nightly
+  // reset clears `locked` so the next day's results can be written normally.
+  const existingIdx = lottery.draws.findIndex(d => d.time === time);
+  if (existingIdx !== -1) {
+    lottery.draws[existingIdx].numbers = numbers;
+    lottery.draws[existingIdx].date = todayET();
+    lottery.draws[existingIdx].locked = true;
+    delete lottery.draws[existingIdx].status;
+    delete lottery.draws[existingIdx].corrected;
+  } else {
+    lottery.draws.push({ time, numbers, date: todayET(), locked: true });
+  }
   writeData(data);
   res.json({ ok: true });
 });
