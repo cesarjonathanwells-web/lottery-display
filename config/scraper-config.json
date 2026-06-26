@@ -7,6 +7,7 @@
     {
       "lotteryId": "anguilla",
       "source": "anguilla",
+      "sources": ["enloteria", "anguilla"],
       "draws": [
         {
           "time": "8:00 AM"
@@ -58,6 +59,7 @@
     {
       "lotteryId": "nacional",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "2:30 PM",
@@ -73,6 +75,7 @@
     {
       "lotteryId": "laprimera",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "12:00 PM",
@@ -87,6 +90,7 @@
     {
       "lotteryId": "lasuerte",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "12:30 PM",
@@ -101,6 +105,7 @@
     {
       "lotteryId": "lotedom",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "12:00 PM",
@@ -111,6 +116,7 @@
     {
       "lotteryId": "real",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "1:00 PM",
@@ -121,6 +127,7 @@
     {
       "lotteryId": "loteka",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "8:00 PM",
@@ -131,6 +138,7 @@
     {
       "lotteryId": "quinielapale",
       "source": "conectate",
+      "sources": ["enloteria", "conectate"],
       "draws": [
         {
           "time": "9:00 PM",

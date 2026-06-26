@@ -7,6 +7,7 @@ const { getToday, getNowEST, parseDrawTime, isToday, isRecent, log, TIMEZONE } =
 const SCRAPERS = {
   anguilla: require('./anguilla'),
   conectate: require('./conectate'),
+  enloteria: require('./enloteria'),
   ocean: require('./ocean'),
   lotterycoast: require('./lotterycoast'),
   newyork: require('./newyork'),
@@ -146,16 +147,63 @@ function updateDrawTime(lotteryId, oldTime, newTime) {
 
 // ── Scraping ──────────────────────────────────────────────────
 
-async function runScrape(scraperConfig, drawConfig) {
-  const scraper = SCRAPERS[scraperConfig.source];
-  if (!scraper) return null;
+function resolveSources(scraperConfig) {
+  const sources = scraperConfig.sources || [scraperConfig.source];
+  return sources.filter(Boolean);
+}
 
-  try {
-    return await scraper.scrapeDraw(scraperConfig, drawConfig);
-  } catch (err) {
-    log(`Scrape error ${scraperConfig.lotteryId} (${scraperConfig.source}): ${err.message}`);
-    return null;
+function isManualScraper(scraperConfig) {
+  const sources = resolveSources(scraperConfig);
+  return sources.length > 0 && sources.every(src => src === 'manual');
+}
+
+async function selectSourceResult(scraperConfig, drawConfig, options = {}) {
+  const sourceMap = options.sourceMap || SCRAPERS;
+  const validateResult = options.validateResult || ((numbers, lotteryId) => validateNumbers(numbers, lotteryId));
+  const dateOk = options.dateOk || (date => isToday(date));
+  const logFn = options.logFn || log;
+
+  for (const src of resolveSources(scraperConfig)) {
+    const scraper = sourceMap[src];
+    if (!scraper || typeof scraper.scrapeDraw !== 'function') {
+      logFn(`Scrape error ${scraperConfig.lotteryId} (${src}): source not configured`);
+      continue;
+    }
+
+    let result;
+    try {
+      result = await scraper.scrapeDraw(scraperConfig, drawConfig);
+    } catch (err) {
+      logFn(`Scrape error ${scraperConfig.lotteryId} (${src}): ${err.message}`);
+      continue;
+    }
+
+    if (!result) continue;
+    if (!result.date || !dateOk(result.date)) continue;
+
+    if (!result.closed) {
+      const validation = validateResult(result.numbers, scraperConfig.lotteryId, result);
+      if (!validation.valid) {
+        logFn(`Rejected source ${src}: ${scraperConfig.lotteryId} "${drawConfig.time}": ${validation.reason}`);
+        continue;
+      }
+    }
+
+    logFn(`Source ${src} provided ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+    return { source: src, result };
   }
+
+  return null;
+}
+
+async function runScrape(scraperConfig, drawConfig, options = {}) {
+  const dateOk = options.dateOk || (date =>
+    options.acceptRecent
+      ? isToday(date) || isRecent(date)
+      : isToday(date)
+  );
+  const selected = await selectSourceResult(scraperConfig, drawConfig, { ...options, dateOk });
+  return selected ? selected.result : null;
 }
 
 // ── Validation ────────────────────────────────────────────────
@@ -245,7 +293,7 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
   scraperStatus[key] = {
     lotteryId: scraperConfig.lotteryId,
     drawTime: drawConfig.time,
-    source: scraperConfig.source,
+    source: resolveSources(scraperConfig).join(','),
     status: 'polling',
     startedAt: new Date().toISOString(),
     lastCheck: null,
@@ -415,7 +463,7 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
     // Use Sunday time for lookups/updates when applicable
     const effectiveTime = (isSunday && drawConfig.sundayTime) ? drawConfig.sundayTime : drawConfig.time;
 
-    const result = await runScrape(scraperConfig, drawConfig);
+    const result = await runScrape(scraperConfig, drawConfig, { acceptRecent });
 
     if (result && result.closed) {
       results.push({ time: effectiveTime, closed: true, updated: false });
@@ -446,7 +494,7 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
 
 async function scrapeAll({ acceptRecent = false } = {}) {
   const config = readConfig();
-  const allScrapers = config.scrapers.filter(s => s.source !== 'manual');
+  const allScrapers = config.scrapers.filter(s => !isManualScraper(s));
   const startMs = Date.now();
 
   log('Scrape-all started');
@@ -603,4 +651,10 @@ function getStatus() {
   };
 }
 
-module.exports = { init, getStatus, manualScrape, scrapeAll };
+module.exports = {
+  init,
+  getStatus,
+  manualScrape,
+  scrapeAll,
+  _test: { resolveSources, isManualScraper, selectSourceResult }
+};

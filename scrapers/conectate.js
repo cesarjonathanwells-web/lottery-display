@@ -1,54 +1,113 @@
-const cheerio = require('cheerio');
 const { fetchPage } = require('./http');
-const { getToday, getNowEST, cachedFetch, padNumbers, log } = require('./utils');
+const { cachedFetch, padNumbers, log } = require('./utils');
 
 const PAGE_URL = 'https://www.conectate.com.do/loterias/';
+const API_BASE = 'https://api.conectate.com.do/conectate';
+const SITE_URL = `${API_BASE}/sites/env`;
+const SESSIONS_URL = `${API_BASE}/sessions`;
+const DOMINICAN_TIMEZONE = 'America/Santo_Domingo';
 
 const _cache = new Map();
 const CACHE_TTL = 30000;
 
+function getDominicanToday() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: DOMINICAN_TIMEZONE });
+}
+
+function toDominicanMidnightIso(dateStr) {
+  return `${dateStr}T04:00:00.000Z`;
+}
+
+function normalizeApiDate(dateRaw) {
+  if (!dateRaw) return null;
+  const date = new Date(dateRaw);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('en-CA', { timeZone: DOMINICAN_TIMEZONE });
+}
+
+function flattenScore(score) {
+  const numbers = [];
+
+  function walk(value) {
+    if (Array.isArray(value)) {
+      value.forEach(walk);
+      return;
+    }
+
+    if (value === null || value === undefined) return;
+    const number = String(value).trim().replace(/^\+/, '');
+    if (number) numbers.push(number);
+  }
+
+  walk(score);
+  return numbers;
+}
+
+function findSessionForDate(sessionRecord, dateStr) {
+  if (!sessionRecord) return null;
+
+  const sessions = Array.isArray(sessionRecord.sessions) ? sessionRecord.sessions : [];
+  const found = sessions.find(session => normalizeApiDate(session.date) === dateStr);
+  if (found) return found;
+
+  const lastSession = sessionRecord.lastSession;
+  if (lastSession && normalizeApiDate(lastSession.date) === dateStr) return lastSession;
+
+  return null;
+}
+
+function hasClosedMarker(siteGame, dateStr) {
+  const skips = siteGame && siteGame.game && Array.isArray(siteGame.game.skips)
+    ? siteGame.game.skips
+    : [];
+  return skips.some(skip => normalizeApiDate(skip.date) === dateStr);
+}
+
+function addGameResult(results, siteGame, sessionRecord, dateStr) {
+  if (!siteGame || !siteGame.title) return;
+
+  const session = findSessionForDate(sessionRecord, dateStr);
+  const closed = hasClosedMarker(siteGame, dateStr) || Boolean(session && session.reason);
+  const numbers = session ? flattenScore(session.score) : [];
+  const date = session ? normalizeApiDate(session.date) : dateStr;
+
+  if (numbers.length > 0 || closed) {
+    results[siteGame.title] = { numbers, date, closed };
+  }
+}
+
+function collectApiResults(site, sessionRows, dateStr) {
+  const results = {};
+  const sessionsByGameId = new Map();
+
+  if (Array.isArray(sessionRows)) {
+    sessionRows.forEach(row => {
+      if (row && row.game_id) sessionsByGameId.set(row.game_id, row);
+    });
+  }
+
+  for (const company of site && Array.isArray(site.siteCompanies) ? site.siteCompanies : []) {
+    for (const siteGame of Array.isArray(company.siteGames) ? company.siteGames : []) {
+      addGameResult(results, siteGame, sessionsByGameId.get(siteGame.game_id), dateStr);
+    }
+  }
+
+  return results;
+}
+
 async function fetchGames(url) {
   url = url || PAGE_URL;
+  const dateStr = getDominicanToday();
+  const sessionsUrl = `${SESSIONS_URL}?date=${encodeURIComponent(toDominicanMidnightIso(dateStr))}`;
+  const cacheKey = `${url}|${dateStr}`;
 
-  return cachedFetch(_cache, url, CACHE_TTL, async () => {
-    const html = await fetchPage(url);
-    if (!html) return {};
-    const $ = cheerio.load(html);
-    const results = {};
+  return cachedFetch(_cache, cacheKey, CACHE_TTL, async () => {
+    const [site, sessionRows] = await Promise.all([
+      fetchPage(SITE_URL),
+      fetchPage(sessionsUrl)
+    ]);
 
-    $('.game-block').each((_, block) => {
-      const $block = $(block);
-      const titleEl = $block.find('.game-title span');
-      if (!titleEl.length) return;
-
-      const gameName = titleEl.text().trim();
-      const dateRaw = $block.find('.session-date').text().trim();
-      const closed = $block.find('.session-badge').first().text().trim() === 'No Sorteo Hoy';
-
-      const numbers = [];
-      $block.find('.game-scores span.score').each((_, s) => {
-        const num = $(s).text().trim();
-        if (num) numbers.push(num);
-      });
-
-      // Convert dd-mm or dd-mm-yyyy to YYYY-MM-DD
-      let date = null;
-      if (dateRaw) {
-        const parts = dateRaw.split('-').map(Number);
-        if (parts.length === 2 && parts[0] && parts[1]) {
-          const year = getNowEST().getFullYear();
-          date = `${year}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
-        } else if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-          date = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
-        }
-      }
-
-      if (numbers.length > 0 || closed) {
-        results[gameName] = { numbers, date, closed };
-      }
-    });
-
-    return results;
+    return collectApiResults(site, sessionRows, dateStr);
   });
 }
 
@@ -112,7 +171,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
 
     if (!p3game && !p4game) return null;
     if ((p3game && p3game.closed) || (p4game && p4game.closed)) {
-      return { numbers: null, date: (p3game || p4game).date || getToday(), closed: true };
+      return { numbers: null, date: (p3game || p4game).date || getDominicanToday(), closed: true };
     }
 
     const p3 = p3game && p3game.numbers.length > 0 ? p3game.numbers : null;
@@ -132,7 +191,7 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   const game = findGame(drawConfig.gameName, allGames);
 
   if (!game) return null;
-  if (game.closed) return { numbers: null, date: game.date || getToday(), closed: true };
+  if (game.closed) return { numbers: null, date: game.date || getDominicanToday(), closed: true };
   if (!game.numbers || game.numbers.length === 0) return null;
 
   const format = scraperConfig.format || 'pick3';
