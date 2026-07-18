@@ -198,6 +198,8 @@
     {
       "lotteryId": "newyork",
       "source": "newyork",
+      "sources": ["newyork", "lotterycoast"],
+      "state": "ny",
       "draws": [
         {
           "time": "2:30 PM",
