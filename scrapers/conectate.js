@@ -111,11 +111,24 @@ async function fetchGames(url) {
   });
 }
 
+// Collapse repeated whitespace — API titles are inconsistent (e.g. "Anguila 8:00  AM")
+function normalizeName(name) {
+  return String(name || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
 function findGame(gameName, allGames) {
+  if (!gameName) return null;
   if (allGames[gameName]) return allGames[gameName];
-  const key = Object.keys(allGames).find(k =>
-    k.toLowerCase().includes(gameName.toLowerCase()) ||
-    gameName.toLowerCase().includes(k.toLowerCase())
+
+  const target = normalizeName(gameName);
+  const keys = Object.keys(allGames);
+
+  const exact = keys.find(k => normalizeName(k) === target);
+  if (exact) return allGames[exact];
+
+  const key = keys.find(k =>
+    normalizeName(k).includes(target) ||
+    target.includes(normalizeName(k))
   );
   return key ? allGames[key] : null;
 }

@@ -7,67 +7,87 @@
     {
       "lotteryId": "anguilla",
       "source": "anguilla",
-      "sources": ["enloteria", "anguilla"],
+      "sources": [
+        "conectate",
+        "anguilla"
+      ],
       "draws": [
         {
-          "time": "8:00 AM"
+          "time": "8:00 AM",
+          "gameName": "Anguila 8:00 AM"
         },
         {
-          "time": "9:00 AM"
+          "time": "9:00 AM",
+          "gameName": "Anguila 9:00 AM"
         },
         {
-          "time": "10:00 AM"
+          "time": "10:00 AM",
+          "gameName": "Anguila 10:00 AM"
         },
         {
-          "time": "11:00 AM"
+          "time": "11:00 AM",
+          "gameName": "Anguila 11:00 AM"
         },
         {
-          "time": "12:00 PM"
+          "time": "12:00 PM",
+          "gameName": "Anguila 12:00 PM"
         },
         {
-          "time": "1:00 PM"
+          "time": "1:00 PM",
+          "gameName": "Anguila 1:00 PM"
         },
         {
-          "time": "2:00 PM"
+          "time": "2:00 PM",
+          "gameName": "Anguila 2:00 PM"
         },
         {
-          "time": "3:00 PM"
+          "time": "3:00 PM",
+          "gameName": "Anguila 3:00 PM"
         },
         {
-          "time": "4:00 PM"
+          "time": "4:00 PM",
+          "gameName": "Anguila 4:00 PM"
         },
         {
-          "time": "5:00 PM"
+          "time": "5:00 PM",
+          "gameName": "Anguila 5:00 PM"
         },
         {
-          "time": "6:00 PM"
+          "time": "6:00 PM",
+          "gameName": "Anguila 6:00 PM"
         },
         {
-          "time": "7:00 PM"
+          "time": "7:00 PM",
+          "gameName": "Anguila 7:00 PM"
         },
         {
-          "time": "8:00 PM"
+          "time": "8:00 PM",
+          "gameName": "Anguila 8:00 PM"
         },
         {
-          "time": "9:00 PM"
+          "time": "9:00 PM",
+          "gameName": "Anguila 9:00 PM"
         },
         {
-          "time": "10:00 PM"
+          "time": "10:00 PM",
+          "gameName": "Anguila 10:00 PM"
         }
       ]
     },
     {
       "lotteryId": "nacional",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "2:30 PM",
-          "gameName": "Gana M\u00e1s"
+          "gameName": "Gana Más"
         },
         {
           "time": "9:00 PM",
-          "gameName": "Loter\u00eda Nacional",
+          "gameName": "Lotería Nacional",
           "sundayTime": "6:00 PM"
         }
       ]
@@ -75,11 +95,13 @@
     {
       "lotteryId": "laprimera",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "12:00 PM",
-          "gameName": "La Primera D\u00eda"
+          "gameName": "La Primera Día"
         },
         {
           "time": "7:00 PM",
@@ -90,22 +112,26 @@
     {
       "lotteryId": "lasuerte",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "12:30 PM",
-          "gameName": "La Suerte MD"
+          "gameName": "La Suerte Día"
         },
         {
           "time": "6:00 PM",
-          "gameName": "La Suerte 6PM"
+          "gameName": "La Suerte Tarde"
         }
       ]
     },
     {
       "lotteryId": "lotedom",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "12:00 PM",
@@ -116,7 +142,9 @@
     {
       "lotteryId": "real",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "1:00 PM",
@@ -127,7 +155,9 @@
     {
       "lotteryId": "loteka",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "8:00 PM",
@@ -138,7 +168,9 @@
     {
       "lotteryId": "quinielapale",
       "source": "conectate",
-      "sources": ["enloteria", "conectate"],
+      "sources": [
+        "conectate"
+      ],
       "draws": [
         {
           "time": "9:00 PM",
@@ -154,8 +186,8 @@
       "draws": [
         {
           "time": "12:30 PM",
-          "pick3Name": "Pick 3 D\u00eda",
-          "pick4Name": "Pick 4 D\u00eda"
+          "pick3Name": "Pick 3 Día",
+          "pick4Name": "Pick 4 Día"
         },
         {
           "time": "7:30 PM",
@@ -171,7 +203,7 @@
       "draws": [
         {
           "time": "10:00 AM",
-          "drawLabel": "MA\u00d1ANA",
+          "drawLabel": "MAÑANA",
           "skipSunday": true
         },
         {
@@ -198,7 +230,10 @@
     {
       "lotteryId": "newyork",
       "source": "newyork",
-      "sources": ["newyork", "lotterycoast"],
+      "sources": [
+        "newyork",
+        "lotterycoast"
+      ],
       "state": "ny",
       "draws": [
         {
