@@ -6,9 +6,9 @@
   "scrapers": [
     {
       "lotteryId": "anguilla",
-      "source": "conectate",
+      "source": "anguilla",
       "sources": [
-        "conectate"
+        "anguilla"
       ],
       "draws": [
         {
@@ -75,112 +75,122 @@
     },
     {
       "lotteryId": "nacional",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "2:30 PM",
-          "gameName": "Gana Más"
+          "gameName": "Gana Más",
+          "pageSlug": "resultados-gana-mas"
         },
         {
           "time": "9:00 PM",
           "gameName": "Lotería Nacional",
-          "sundayTime": "6:00 PM"
+          "sundayTime": "6:00 PM",
+          "pageSlug": "resultados-nacional-noche"
         }
       ]
     },
     {
       "lotteryId": "laprimera",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "12:00 PM",
-          "gameName": "La Primera Día"
+          "gameName": "La Primera Día",
+          "pageSlug": "resultados-la-primera"
         },
         {
           "time": "7:00 PM",
-          "gameName": "Primera Noche"
+          "gameName": "Primera Noche",
+          "pageSlug": "resultados-la-primera-noche"
         }
       ]
     },
     {
       "lotteryId": "lasuerte",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "12:30 PM",
-          "gameName": "La Suerte Día"
+          "gameName": "La Suerte Día",
+          "pageSlug": "resultados-la-suerte"
         },
         {
           "time": "6:00 PM",
-          "gameName": "La Suerte Tarde"
+          "gameName": "La Suerte Tarde",
+          "pageSlug": "resultados-la-suerte-6pm"
         }
       ]
     },
     {
       "lotteryId": "lotedom",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "12:00 PM",
-          "gameName": "LoteDom"
+          "gameName": "LoteDom",
+          "pageSlug": "resultados-lotedom"
         }
       ]
     },
     {
       "lotteryId": "real",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "1:00 PM",
-          "gameName": "Quiniela Real"
+          "gameName": "Quiniela Real",
+          "pageSlug": "resultados-real"
         }
       ]
     },
     {
       "lotteryId": "loteka",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "8:00 PM",
-          "gameName": "Quiniela Loteka"
+          "gameName": "Quiniela Loteka",
+          "pageSlug": "resultados-loteka"
         }
       ]
     },
     {
       "lotteryId": "quinielapale",
-      "source": "conectate",
+      "source": "enloteriaPage",
       "sources": [
-        "conectate"
+        "enloteriaPage"
       ],
       "draws": [
         {
           "time": "9:00 PM",
           "gameName": "Quiniela Leidsa",
-          "sundayTime": "3:55 PM"
+          "sundayTime": "3:55 PM",
+          "pageSlug": "resultados-leidsa"
         }
       ]
     },
     {
       "lotteryId": "kinglottery",
-      "source": "conectate",
+      "source": "manual",
       "format": "pick34",
       "draws": [
         {
@@ -194,7 +204,10 @@
           "pick4Name": "Pick 4 Noche"
         }
       ],
-      "pageUrl": "/loterias/king-lottery/"
+      "pageUrl": "/loterias/king-lottery/",
+      "sources": [
+        "manual"
+      ]
     },
     {
       "lotteryId": "ocean",

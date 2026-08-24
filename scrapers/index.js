@@ -8,6 +8,7 @@ const SCRAPERS = {
   anguilla: require('./anguilla'),
   conectate: require('./conectate'),
   enloteria: require('./enloteria'),
+  enloteriaPage: require('./enloteriaPage'),
   ocean: require('./ocean'),
   lotterycoast: require('./lotterycoast'),
   newyork: require('./newyork'),
