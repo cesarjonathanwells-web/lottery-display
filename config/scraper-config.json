@@ -6,10 +6,9 @@
   "scrapers": [
     {
       "lotteryId": "anguilla",
-      "source": "anguilla",
+      "source": "conectate",
       "sources": [
-        "conectate",
-        "anguilla"
+        "conectate"
       ],
       "draws": [
         {
@@ -277,6 +276,11 @@
           "time": "11:40 PM",
           "session": "night"
         }
+      ],
+      "state": "ga",
+      "sources": [
+        "georgia",
+        "lotterycoast"
       ]
     },
     {
@@ -291,6 +295,11 @@
           "time": "11:00 PM",
           "session": "evening"
         }
+      ],
+      "state": "nj",
+      "sources": [
+        "newjersey",
+        "lotterycoast"
       ]
     },
     {
@@ -305,6 +314,11 @@
           "time": "10:30 PM",
           "session": "night"
         }
+      ],
+      "state": "ct",
+      "sources": [
+        "connecticut",
+        "lotterycoast"
       ]
     }
   ]
