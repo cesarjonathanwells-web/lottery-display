@@ -190,23 +190,25 @@
     },
     {
       "lotteryId": "kinglottery",
-      "source": "manual",
+      "source": "enloterias",
       "format": "pick34",
       "draws": [
         {
           "time": "12:30 PM",
           "pick3Name": "Pick 3 Día",
-          "pick4Name": "Pick 4 Día"
+          "pick4Name": "Pick 4 Día",
+          "session": "dia"
         },
         {
           "time": "7:30 PM",
           "pick3Name": "Pick 3 Noche",
-          "pick4Name": "Pick 4 Noche"
+          "pick4Name": "Pick 4 Noche",
+          "session": "noche"
         }
       ],
       "pageUrl": "/loterias/king-lottery/",
       "sources": [
-        "manual"
+        "enloterias"
       ]
     },
     {

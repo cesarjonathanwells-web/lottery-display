@@ -9,6 +9,7 @@ const SCRAPERS = {
   conectate: require('./conectate'),
   enloteria: require('./enloteria'),
   enloteriaPage: require('./enloteriaPage'),
+  enloterias: require('./enloterias'),
   ocean: require('./ocean'),
   lotterycoast: require('./lotterycoast'),
   newyork: require('./newyork'),
