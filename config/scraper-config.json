@@ -190,7 +190,7 @@
     },
     {
       "lotteryId": "kinglottery",
-      "source": "conectate",
+      "source": "enloterias",
       "format": "pick34",
       "draws": [
         {
@@ -208,7 +208,7 @@
       ],
       "pageUrl": "/loterias/king-lottery/",
       "sources": [
-        "conectate"
+        "enloterias"
       ]
     },
     {
