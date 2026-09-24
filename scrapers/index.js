@@ -12,6 +12,7 @@ const SCRAPERS = {
   enloterias: require('./enloterias'),
   ocean: require('./ocean'),
   lotterycoast: require('./lotterycoast'),
+  lotteryusa: require('./lotteryusa'),
   newyork: require('./newyork'),
   florida: require('./florida'),
   georgia: require('./georgia'),
