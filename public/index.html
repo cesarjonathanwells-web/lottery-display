@@ -389,11 +389,10 @@
   function renderRowBalls(lottery, draw) {
     const hasNumbers = draw.numbers && draw.numbers.length > 0;
 
-    // Closed today by the admin: keep any result already drawn today, hide the rest.
+    // Closed today by the admin: keep showing the latest results (the header
+    // carries the Closed badge); only an empty row gets a Closed label.
     if (lottery.closed) {
-      return hasNumbers && draw.date === lottery.closedOn
-        ? renderBalls(lottery, draw)
-        : '<span class="status-closed">Closed</span>';
+      return hasNumbers ? renderBalls(lottery, draw) : '<span class="status-closed">Closed</span>';
     }
 
     if (draw.status === 'closed') return hasNumbers ? renderBalls(lottery, draw) : '';
