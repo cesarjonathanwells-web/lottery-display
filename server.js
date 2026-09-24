@@ -58,8 +58,17 @@ function authMiddleware(req, res, next) {
 
 // --- Public API ---
 
+// `closed` is derived, never stored: a lottery is closed only on the ET day in
+// `closedOn`, so the switch expires at midnight even if the reset cron misses.
 app.get('/api/results', (req, res) => {
-  res.json(readData());
+  const data = readData();
+  const today = todayET();
+  for (const col of data.columns) {
+    for (const lottery of col.lotteries) {
+      lottery.closed = lottery.closedOn === today;
+    }
+  }
+  res.json(data);
 });
 
 // --- Auth ---
@@ -76,6 +85,41 @@ app.post('/api/login', (req, res) => {
 });
 
 // --- Admin API (protected) ---
+
+// Close / reopen a lottery for today. While closed, scrapers skip it entirely
+// and the front ends show "Closed". Resets at midnight ET.
+app.put('/api/results/:lotteryId/closed', authMiddleware, (req, res) => {
+  const { lotteryId } = req.params;
+  const { closed } = req.body;
+
+  if (typeof closed !== 'boolean') {
+    return res.status(400).json({ error: 'closed must be a boolean' });
+  }
+
+  const data = readData();
+  const lottery = findInData(data, lotteryId);
+
+  if (!lottery) {
+    return res.status(404).json({ error: 'Lottery not found' });
+  }
+
+  const today = todayET();
+  if (closed) {
+    lottery.closedOn = today;
+    // Drop scraper statuses on draws that have no result today, so no stale
+    // "Pending" / "No Result" sits under the Closed badge.
+    for (const draw of lottery.draws) {
+      const hasToday = draw.date === today && draw.numbers && draw.numbers.length > 0;
+      if (!hasToday && (draw.status === 'pending' || draw.status === 'no_result')) {
+        delete draw.status;
+      }
+    }
+  } else {
+    delete lottery.closedOn;
+  }
+  writeData(data);
+  res.json({ ok: true, closed });
+});
 
 // Update a specific draw's numbers
 app.put('/api/results/:lotteryId/:drawIndex', authMiddleware, (req, res) => {

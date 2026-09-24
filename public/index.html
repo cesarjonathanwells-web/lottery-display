@@ -146,6 +146,7 @@
   .card-status-closed,
   .card-status-noresult { background: rgba(255,255,255,.2); color: rgba(255,255,255,.7); }
   .card-status-closed { color: #fff; }
+  .card-status-closed-today { background: #b71c1c; color: #fff; }
   .card-status-pending { background: #ff8f00; color: #fff; animation: pulse-pending 1.5s ease-in-out infinite; }
 
   /* Row-level status */
@@ -163,6 +164,11 @@
   }
   .status-noresult {
     background: #bdbdbd; color: #fff; font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .status-closed {
+    background: #b71c1c; color: #fff; font-size: 12px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 20px;
   }
@@ -231,7 +237,7 @@
     .card-title { font-size: 14px; }
     .card-logo { height: 20px; margin-right: 6px; }
 
-    .status-pending, .status-noresult { font-size: 10px; padding: 3px 10px; }
+    .status-pending, .status-noresult, .status-closed { font-size: 10px; padding: 3px 10px; }
   }
 
   /* Phone — single column */
@@ -363,6 +369,7 @@
   }
 
   function getCardStatus(lottery) {
+    if (lottery.closed) return 'closed-today';
     const hasNumbers = lottery.draws.some(d => d.numbers && d.numbers.length > 0);
     const allClosed = lottery.draws.length > 0 && lottery.draws.every(d => d.status === 'closed');
     if (allClosed && !hasNumbers) return 'closed';
@@ -372,6 +379,7 @@
   }
 
   function renderCardStatusBadge(status) {
+    if (status === 'closed-today') return '<span class="card-status card-status-closed-today">Closed</span>';
     if (status === 'closed') return '<span class="card-status card-status-closed">No Draw Today</span>';
     if (status === 'pending') return '<span class="card-status card-status-pending">Pending</span>';
     if (status === 'no_result') return '<span class="card-status card-status-noresult">No Result</span>';
@@ -380,6 +388,13 @@
 
   function renderRowBalls(lottery, draw) {
     const hasNumbers = draw.numbers && draw.numbers.length > 0;
+
+    // Closed today by the admin: keep any result already drawn today, hide the rest.
+    if (lottery.closed) {
+      return hasNumbers && draw.date === lottery.closedOn
+        ? renderBalls(lottery, draw)
+        : '<span class="status-closed">Closed</span>';
+    }
 
     if (draw.status === 'closed') return hasNumbers ? renderBalls(lottery, draw) : '';
 

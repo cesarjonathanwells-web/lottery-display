@@ -54,6 +54,16 @@ function findDrawIndex(lottery, drawTime) {
   return lottery.draws.findIndex(d => d.time === drawTime);
 }
 
+// Admin "Closed today" switch (see PUT /api/results/:lotteryId/closed). Keyed
+// by ET date, so it lapses at midnight on its own.
+function isClosedToday(lottery) {
+  return Boolean(lottery && lottery.closedOn === getToday());
+}
+
+function isLotteryClosed(lotteryId) {
+  return isClosedToday(findLottery(readData(), lotteryId));
+}
+
 // ── Timer helper ─────────────────────────────────────────────
 
 function stopTimer(map, key) {
@@ -104,6 +114,12 @@ function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
   const lottery = findLottery(data, lotteryId);
   if (!lottery) {
     log(`Lottery ${lotteryId} not found`);
+    return false;
+  }
+
+  // Backstop for a scrape already in flight when the lottery was closed.
+  if (isClosedToday(lottery)) {
+    log(`Skip update (closed today): ${lotteryId} "${drawTime}"`);
     return false;
   }
 
@@ -271,6 +287,11 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
   const key = `${scraperConfig.lotteryId}:${drawIndex}`;
   if (activePollers[key] || verifyPollers[key]) return;
 
+  if (isLotteryClosed(scraperConfig.lotteryId)) {
+    log(`Skip polling (closed today): ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+    return;
+  }
+
   const config = readConfig();
   const pollInterval = (config.pollIntervalSeconds || 45) * 1000;
   const timeoutMs = (config.defaultTimeoutMinutes || 120) * 60 * 1000;
@@ -306,6 +327,13 @@ function startPolling(scraperConfig, drawConfig, drawIndex) {
   activePollers[key] = setInterval(poll, pollInterval);
 
   async function poll() {
+    if (isLotteryClosed(scraperConfig.lotteryId)) {
+      log(`Stop polling (closed today): ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+      stopTimer(activePollers, key);
+      scraperStatus[key].status = 'closed';
+      return;
+    }
+
     scraperStatus[key].attempts++;
     scraperStatus[key].lastCheck = new Date().toISOString();
 
@@ -399,6 +427,13 @@ function startVerification(key, scraperConfig, drawConfig, originalNumbers, veri
   log(`Verifying: ${scraperConfig.lotteryId} "${drawConfig.time}" (${Math.round(verifyMs / 60000)}min)`);
 
   verifyPollers[key] = setInterval(async () => {
+    if (isLotteryClosed(scraperConfig.lotteryId)) {
+      log(`Stop verifying (closed today): ${scraperConfig.lotteryId} "${drawConfig.time}"`);
+      stopTimer(verifyPollers, key);
+      scraperStatus[key].status = 'closed';
+      return;
+    }
+
     if (Date.now() - verifyStart > verifyMs) {
       log(`Verified: ${scraperConfig.lotteryId} "${drawConfig.time}"`);
       stopTimer(verifyPollers, key);
@@ -453,6 +488,11 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
   const config = readConfig();
   const scraperConfig = config.scrapers.find(s => s.lotteryId === lotteryId);
   if (!scraperConfig) return { error: `No scraper config for ${lotteryId}` };
+
+  if (isLotteryClosed(lotteryId)) {
+    log(`Skip scrape (closed today): ${lotteryId}`);
+    return { lotteryId, closed: true, results: [] };
+  }
 
   const isSunday = getNowEST().getDay() === 0;
   const results = [];
@@ -532,6 +572,7 @@ function scheduleMidnightReset() {
           delete draw.corrected;
           delete draw.locked;
         }
+        delete lottery.closedOn;
       }
     }
     writeData(data);
@@ -658,5 +699,5 @@ module.exports = {
   getStatus,
   manualScrape,
   scrapeAll,
-  _test: { resolveSources, isManualScraper, selectSourceResult }
+  _test: { resolveSources, isManualScraper, selectSourceResult, isClosedToday }
 };
