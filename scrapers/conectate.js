@@ -171,6 +171,20 @@ function formatNumbers(numbers, format) {
   return numbers;
 }
 
+// The published King quiniela is derived from the pick games
+// (quiniela = [p3 last2, p4 first2, p4 last2]), so disagreement means the
+// feed is serving junk — conectate published wrong numbers for every King
+// draw on 08-25/08-26 whose quiniela did not derive from its pick3/pick4.
+function quinielaDerivesFromPicks(quiniela, p3, p4) {
+  if (!Array.isArray(quiniela) || quiniela.length !== 3) return false;
+  const p3d = p3.join('');
+  const p4d = p4.join('');
+  if (p3d.length < 2 || p4d.length !== 4) return false;
+  const expected = [p3d.slice(-2), p4d.slice(0, 2), p4d.slice(-2)];
+  const actual = quiniela.map(n => String(n).trim().padStart(2, '0'));
+  return expected.every((v, i) => v === actual[i]);
+}
+
 async function scrapeDraw(scraperConfig, drawConfig) {
   const url = scraperConfig.pageUrl
     ? 'https://www.conectate.com.do' + scraperConfig.pageUrl
@@ -190,6 +204,18 @@ async function scrapeDraw(scraperConfig, drawConfig) {
     const p3 = p3game && p3game.numbers.length > 0 ? p3game.numbers : null;
     const p4 = p4game && p4game.numbers.length > 0 ? p4game.numbers : null;
     if (!p3 && !p4) return null;
+
+    // Quiniela-derivation gate: when the same-date quiniela is published
+    // alongside both picks, reject the draw unless it derives from them.
+    if (drawConfig.quinielaName && p3 && p4) {
+      const qGame = findGame(drawConfig.quinielaName, allGames);
+      const pickDate = (p3game && p3game.date) || (p4game && p4game.date);
+      if (qGame && qGame.numbers.length > 0 && qGame.date === pickDate
+          && !quinielaDerivesFromPicks(qGame.numbers, p3, p4)) {
+        log(`${scraperConfig.lotteryId} "${drawConfig.time}" rejected: quiniela ${qGame.numbers.join(' ')} does not derive from pick3 ${p3.join('')} / pick4 ${p4.join('')}`);
+        return null;
+      }
+    }
 
     const numbers = [];
     if (p3) numbers.push(...p3);
@@ -213,4 +239,4 @@ async function scrapeDraw(scraperConfig, drawConfig) {
   return { numbers, date: game.date, closed: false };
 }
 
-module.exports = { scrapeDraw };
+module.exports = { scrapeDraw, quinielaDerivesFromPicks };
