@@ -15,7 +15,6 @@
     --main-pad:    10px;
     --card-head-h: 46px;
     --card-gap:    10px;
-    --row-h: calc((100vh - var(--header-h) - var(--main-pad)*2 - var(--card-head-h)) / 15);
   }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -73,13 +72,21 @@
     flex: 1; min-height: 0;
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--card-gap); padding: var(--main-pad);
-    overflow: hidden; align-items: start;
+    overflow: hidden; align-items: stretch;
   }
-  .col-wrap { display: flex; flex-direction: column; gap: var(--card-gap); }
+  .col-wrap {
+    display: flex; flex-direction: column; gap: var(--card-gap);
+    height: 100%; min-height: 0;
+  }
 
   /* Card */
   .card {
     display: flex; flex-direction: column;
+    /* Grow with row count from a header-sized basis so every row in a
+       column gets the same height and each column fills the viewport
+       exactly, whatever mix of cards it holds. --rows is set inline. */
+    flex: var(--rows, 1) 1 42px;
+    min-height: 0;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--border);
     border-radius: 10px; overflow: hidden;
@@ -102,7 +109,7 @@
 
   /* Row */
   .row {
-    height: var(--row-h); flex-shrink: 0;
+    flex: 1 1 0; min-height: 0;
     display: flex; align-items: center;
     padding: 0 14px; gap: 8px;
     border-bottom: 1px solid #e4eaf2;
@@ -205,8 +212,9 @@
       grid-template-columns: repeat(2, 1fr);
       height: auto; overflow: visible; align-items: start;
     }
-    :root { --row-h: 48px; }
-    .row { height: 48px; }
+    .col-wrap { height: auto; }
+    .card { flex: none; }
+    .row { flex: 0 0 48px; height: 48px; }
     .ball   { min-width: 22px; font-size: 24px; }
     .ball-d { min-width: 14px; font-size: 24px; }
     .hdr-warn { font-size: 20px; letter-spacing: 1px; }
@@ -227,7 +235,7 @@
     .hdr-date { font-size: 9px; }
     main { gap: 8px; padding: 8px; }
     .card { border-radius: 8px; }
-    .row { height: 44px; padding: 0 10px; gap: 6px; }
+    .row { flex: 0 0 44px; height: 44px; padding: 0 10px; gap: 6px; }
     .ball   { min-width: 20px; font-size: 22px; }
     .ball-d { min-width: 12px; font-size: 22px; }
     .ball-sep { font-size: 14px; }
@@ -420,7 +428,7 @@
       </div>`;
     }).join('');
 
-    return `<div class="card">
+    return `<div class="card" style="--rows:${lottery.draws.length}">
       <div class="card-head" style="background:linear-gradient(90deg,${lottery.color},${blendWhite(lottery.color,.15)})">
         ${LOGOS[lottery.id] ? `<img class="card-logo" src="${LOGOS[lottery.id]}" alt="">` : ''}
         <span class="card-title">${lottery.name}</span>
