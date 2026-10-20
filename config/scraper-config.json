@@ -142,6 +142,11 @@
           "time": "12:00 PM",
           "gameName": "LoteDom",
           "pageSlug": "resultados-lotedom"
+        },
+        {
+          "time": "10:00 PM",
+          "gameName": "LoteDom Noche",
+          "pageSlug": "resultados-lotedom-noche"
         }
       ]
     },
@@ -156,6 +161,11 @@
           "time": "1:00 PM",
           "gameName": "Quiniela Real",
           "pageSlug": "resultados-real"
+        },
+        {
+          "time": "8:00 PM",
+          "gameName": "Real Noche",
+          "pageSlug": "resultados-real-noche"
         }
       ]
     },
@@ -166,6 +176,11 @@
         "enloteriaPage"
       ],
       "draws": [
+        {
+          "time": "1:30 PM",
+          "gameName": "Loteka Tarde",
+          "pageSlug": "resultados-loteka-tarde"
+        },
         {
           "time": "8:00 PM",
           "gameName": "Quiniela Loteka",
