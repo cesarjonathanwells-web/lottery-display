@@ -110,6 +110,30 @@ function countUpdatedResults(results) {
 
 // ── Draw updates ──────────────────────────────────────────────
 
+// Comparable minutes-since-midnight for a draw time; unparseable times sort last.
+function drawMinutes(timeStr) {
+  const parsed = parseDrawTime(timeStr);
+  return parsed ? parsed.hours * 60 + parsed.minutes : Infinity;
+}
+
+// One-shot repair: existing data files may carry draws out of clock order
+// (a draw added to a lottery mid-flight used to be appended at the end).
+function sortAllDraws() {
+  const data = readData();
+  let changed = false;
+  for (const column of data.columns || []) {
+    for (const lottery of column.lotteries || []) {
+      const before = lottery.draws.map(d => d.time).join('|');
+      lottery.draws.sort((a, b) => drawMinutes(a.time) - drawMinutes(b.time));
+      if (lottery.draws.map(d => d.time).join('|') !== before) {
+        log(`Reordered draws for ${lottery.id}`);
+        changed = true;
+      }
+    }
+  }
+  if (changed) writeData(data);
+}
+
 function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
   const data = readData();
   const lottery = findLottery(data, lotteryId);
@@ -135,7 +159,12 @@ function updateDraw(lotteryId, drawTime, numbers, status, date, extra) {
   }
 
   if (idx === -1) {
-    lottery.draws.push({ time: drawTime, numbers: numbers || [], status: status || null, date: drawDate });
+    // Insert in clock order, not at the end — the admin UI addresses draws by
+    // index, so display order must live in the stored file itself.
+    const entry = { time: drawTime, numbers: numbers || [], status: status || null, date: drawDate };
+    const at = lottery.draws.findIndex(d => drawMinutes(d.time) > drawMinutes(drawTime));
+    if (at === -1) lottery.draws.push(entry);
+    else lottery.draws.splice(at, 0, entry);
   } else {
     if (numbers) {
       lottery.draws[idx].numbers = numbers;
@@ -624,6 +653,8 @@ function schedulePeriodicScrape() {
 function init() {
   const config = readConfig();
   log('Initializing scheduler...');
+
+  sortAllDraws();
 
   for (const scraperConfig of config.scrapers) {
     for (let di = 0; di < scraperConfig.draws.length; di++) {
