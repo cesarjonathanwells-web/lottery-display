@@ -75,8 +75,9 @@
     },
     {
       "lotteryId": "nacional",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
@@ -95,8 +96,9 @@
     },
     {
       "lotteryId": "laprimera",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
@@ -114,8 +116,9 @@
     },
     {
       "lotteryId": "lasuerte",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
@@ -133,14 +136,15 @@
     },
     {
       "lotteryId": "lotedom",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
         {
           "time": "12:00 PM",
-          "gameName": "LoteDom",
+          "gameName": "LoteDom Día",
           "pageSlug": "resultados-lotedom"
         },
         {
@@ -152,8 +156,9 @@
     },
     {
       "lotteryId": "real",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
@@ -164,34 +169,36 @@
         },
         {
           "time": "8:00 PM",
-          "gameName": "Real Noche",
+          "gameName": "Lotería Real Noche",
           "pageSlug": "resultados-real-noche"
         }
       ]
     },
     {
       "lotteryId": "loteka",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
         {
           "time": "1:30 PM",
-          "gameName": "Loteka Tarde",
+          "gameName": "Quiniela Loteka Día",
           "pageSlug": "resultados-loteka-tarde"
         },
         {
           "time": "8:00 PM",
-          "gameName": "Quiniela Loteka",
+          "gameName": "Quiniela Loteka Noche",
           "pageSlug": "resultados-loteka"
         }
       ]
     },
     {
       "lotteryId": "quinielapale",
-      "source": "enloteriaPage",
+      "source": "conectate",
       "sources": [
+        "conectate",
         "enloteriaPage"
       ],
       "draws": [
