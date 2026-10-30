@@ -85,9 +85,9 @@
     {
       "lotteries": [
         {
-          "id": "nacional",
-          "name": "Nacional",
-          "color": "#3aaa48",
+          "id": "loteka",
+          "name": "Loteka",
+          "color": "#0098bf",
           "format": "pick3",
           "draws": []
         },
@@ -99,17 +99,17 @@
           "draws": []
         },
         {
+          "id": "nacional",
+          "name": "Nacional",
+          "color": "#3aaa48",
+          "format": "pick3",
+          "draws": []
+        },
+        {
           "id": "newyork",
           "name": "New York",
           "color": "#1a4ea0",
           "format": "pick34",
-          "draws": []
-        },
-        {
-          "id": "loteka",
-          "name": "Loteka",
-          "color": "#0098bf",
-          "format": "pick3",
           "draws": []
         },
         {
