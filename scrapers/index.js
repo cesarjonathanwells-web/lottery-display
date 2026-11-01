@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
-const { getToday, getNowEST, parseDrawTime, isToday, isRecent, log, TIMEZONE } = require('./utils');
+const { getToday, getNowEST, parseDrawTime, isToday, isRecent, log, TIMEZONE, drawTimezone } = require('./utils');
 
 // Each scraper exports: scrapeDraw(scraperConfig, drawConfig) → { numbers, date, closed } | null
 const SCRAPERS = {
@@ -659,6 +659,7 @@ function init() {
   for (const scraperConfig of config.scrapers) {
     for (let di = 0; di < scraperConfig.draws.length; di++) {
       const drawConfig = scraperConfig.draws[di];
+      const timezone = drawTimezone(scraperConfig.lotteryId);
       const parsed = parseDrawTime(drawConfig.time);
       if (!parsed) {
         log(`  Skip: ${scraperConfig.lotteryId} "${drawConfig.time}" — invalid time`);
@@ -672,12 +673,12 @@ function init() {
           cron.schedule(`${parsed.minutes} ${parsed.hours} * * 1-6`, () => {
             updateDrawTime(scraperConfig.lotteryId, drawConfig.sundayTime, drawConfig.time);
             startPolling(scraperConfig, { ...drawConfig, time: drawConfig.time }, di);
-          }, { timezone: TIMEZONE });
+          }, { timezone });
           // Sunday: alternate time
           cron.schedule(`${sundayParsed.minutes} ${sundayParsed.hours} * * 0`, () => {
             updateDrawTime(scraperConfig.lotteryId, drawConfig.time, drawConfig.sundayTime);
             startPolling(scraperConfig, { ...drawConfig, time: drawConfig.sundayTime }, di);
-          }, { timezone: TIMEZONE });
+          }, { timezone });
           log(`  ${scraperConfig.lotteryId} "${drawConfig.time}" → Mon-Sat ${String(parsed.hours).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}, Sun ${String(sundayParsed.hours).padStart(2, '0')}:${String(sundayParsed.minutes).padStart(2, '0')}`);
           continue;
         }
@@ -686,7 +687,7 @@ function init() {
       const cronDays = drawConfig.skipSunday ? '1-6' : '*';
       cron.schedule(`${parsed.minutes} ${parsed.hours} * * ${cronDays}`, () => {
         startPolling(scraperConfig, drawConfig, di);
-      }, { timezone: TIMEZONE });
+      }, { timezone });
 
       const skipLabel = drawConfig.skipSunday ? ' (Mon-Sat)' : '';
       log(`  ${scraperConfig.lotteryId} "${drawConfig.time}" → ${String(parsed.hours).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}${skipLabel}`);

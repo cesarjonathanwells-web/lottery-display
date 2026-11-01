@@ -423,7 +423,7 @@
     const rows = lottery.draws.map(draw => {
       const corrected = draw.corrected ? '<span class="status-corrected">CORRECTED</span>' : '';
       return `<div class="row">
-        <span class="time">${draw.time}${corrected}</span>
+        <span class="time">${draw.displayTime || draw.time}${corrected}</span>
         <span class="balls">${renderRowBalls(lottery, draw)}</span>
       </div>`;
     }).join('');

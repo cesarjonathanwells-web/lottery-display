@@ -2,7 +2,8 @@
   "name": "lottery-display",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test scrapers/utils.test.js"
   },
   "dependencies": {
     "axios": "^1.7.0",

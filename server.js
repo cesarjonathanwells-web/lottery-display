@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const scraper = require('./scrapers');
+const { isUSLottery, toLocalTime } = require('./scrapers/utils');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -66,6 +67,12 @@ app.get('/api/results', (req, res) => {
   for (const col of data.columns) {
     for (const lottery of col.lotteries) {
       lottery.closed = lottery.closedOn === today;
+      // `time` stays Eastern because it keys the draw; viewers get AST.
+      if (isUSLottery(lottery.id)) {
+        for (const draw of lottery.draws) {
+          draw.displayTime = toLocalTime(draw.time, today);
+        }
+      }
     }
   }
   res.json(data);
