@@ -100,6 +100,37 @@ function allPartsChanged(storedParts, newParts) {
   return true;
 }
 
+// The live poller refuses a result while any part still matches the earlier
+// day's numbers. The 5-minute sweep and the admin's Scrape buttons need the
+// same guard, or they post a fresh Pick 3 beside a stale Pick 4. They hold such
+// a result for up to an hour, then let it through: now and then a part really
+// does repeat (about one Pick 3 draw in a thousand).
+const STALE_HOLD_MS = 60 * 60 * 1000;
+const staleHolds = new Map(); // "lottery|time|date" → when the hold began
+
+function looksHalfStale(stored, result) {
+  if (!stored || !stored.numbers || !stored.numbers.length || !stored.date) return false;
+  // A same-day change to one part is a correction, not a stale part.
+  if (stored.date >= (result.date || getToday())) return false;
+  const storedParts = splitParts(stored.numbers);
+  if (storedParts.length < 2) return false;
+  return !allPartsChanged(storedParts, result.parts || splitParts(result.numbers));
+}
+
+function shouldHoldStale(key, stored, result, now = Date.now()) {
+  if (!looksHalfStale(stored, result)) return false;
+  if (!staleHolds.has(key)) staleHolds.set(key, now);
+  return now - staleHolds.get(key) < STALE_HOLD_MS;
+}
+
+function holdHalfStale(lotteryId, drawTime, result) {
+  const lottery = findLottery(readData(), lotteryId);
+  const idx = lottery ? findDrawIndex(lottery, drawTime) : -1;
+  if (idx === -1) return false;
+  const key = `${lotteryId}|${drawTime}|${result.date || getToday()}`;
+  return shouldHoldStale(key, lottery.draws[idx], result);
+}
+
 // ── Scrape result helpers ────────────────────────────────────
 
 function countUpdatedResults(results) {
@@ -547,10 +578,14 @@ async function manualScrape(lotteryId, { acceptRecent = false } = {}) {
         if (!validation.valid) {
           log(`Rejected: ${lotteryId} "${effectiveTime}": ${validation.reason}`);
         } else if (hasNewNumbers(lotteryId, effectiveTime, result.numbers)) {
-          log(`Update: ${lotteryId} "${effectiveTime}": ${result.numbers.join(',')} (date: ${result.date})`);
-          updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
-          results.push({ time: effectiveTime, numbers: result.numbers, date: result.date, updated: true });
-          continue;
+          if (holdHalfStale(lotteryId, effectiveTime, result)) {
+            log(`Held: ${lotteryId} "${effectiveTime}": ${result.numbers.join(',')} — a part still matches the earlier day's result`);
+          } else {
+            log(`Update: ${lotteryId} "${effectiveTime}": ${result.numbers.join(',')} (date: ${result.date})`);
+            updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
+            results.push({ time: effectiveTime, numbers: result.numbers, date: result.date, updated: true });
+            continue;
+          }
         } else {
           // Numbers unchanged — clear any stale pending/no_result status
           updateDraw(lotteryId, effectiveTime, result.numbers, null, result.date);
@@ -592,6 +627,7 @@ function scheduleMidnightReset() {
     Object.keys(verifyPollers).forEach(k => stopTimer(verifyPollers, k));
     Object.keys(scraperStatus).forEach(k => delete scraperStatus[k]);
     corrections.length = 0;
+    staleHolds.clear();
 
     // Clear statuses in data file so the new day starts fresh
     const data = readData();
@@ -732,5 +768,5 @@ module.exports = {
   getStatus,
   manualScrape,
   scrapeAll,
-  _test: { resolveSources, isManualScraper, selectSourceResult, isClosedToday }
+  _test: { resolveSources, isManualScraper, selectSourceResult, isClosedToday, looksHalfStale, shouldHoldStale }
 };
