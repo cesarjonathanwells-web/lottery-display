@@ -22,35 +22,39 @@ function findDraw(draws, period) {
   return draws.find(d => d.drawPeriod === period && d.status === 22) || null;
 }
 
+// drawTime is midnight Eastern on the draw date. Read it on that clock so the
+// date doesn't depend on the server's time zone.
 function formatDate(timestampMs) {
-  const d = new Date(timestampMs);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return new Date(timestampMs).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
-async function scrapeDraw(scraperConfig, drawConfig) {
-  const data = await fetchAll();
-  if (!data) return null;
-
-  const period = PERIOD_MAP[drawConfig.session];
-  if (!period) return null;
+// Numbers (Pick 3) and Win 4 post separately, sometimes 20 minutes apart. The
+// latest finished draw of each can then be from different days, so both halves
+// must share a date or today's Pick 3 goes out beside yesterday's Win 4.
+function buildResult(data, session) {
+  const period = PERIOD_MAP[session];
+  if (!data || !period) return null;
 
   const numbersDraw = findDraw(data.numbers?.draws, period);
   const win4Draw = findDraw(data.win4?.draws, period);
-
-  if (!numbersDraw && !win4Draw) return null;
 
   const p3 = numbersDraw?.results?.[0]?.primary;
   const p4 = win4Draw?.results?.[0]?.primary;
   if (!p3 || !p4) return null;
 
-  const numbers = [...p3, '-', ...p4];
-  const date = formatDate((numbersDraw || win4Draw).drawTime);
+  const date = formatDate(numbersDraw.drawTime);
+  const win4Date = formatDate(win4Draw.drawTime);
+  if (date !== win4Date) {
+    log(`newyork "${session}" date mismatch: numbers=${date} win4=${win4Date} — skipping`);
+    return null;
+  }
 
-  log(`newyork "${drawConfig.session}" source date: ${date}`);
-  return { numbers, parts: [p3, p4], date, closed: false };
+  log(`newyork "${session}" source date: ${date}`);
+  return { numbers: [...p3, '-', ...p4], parts: [p3, p4], date, closed: false };
 }
 
-module.exports = { scrapeDraw };
+async function scrapeDraw(scraperConfig, drawConfig) {
+  return buildResult(await fetchAll(), drawConfig.session);
+}
+
+module.exports = { scrapeDraw, _test: { buildResult } };
